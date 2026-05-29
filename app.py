@@ -30,20 +30,23 @@ def send_email(to_email, subject, html_content):
     with open("assets/Visual.png", "rb") as img:
         mime_img = MIMEImage(img.read(), _subtype="png")
         mime_img.add_header("Content-ID", "<visual>")
-        mime_img.add_header("Content-Disposition", "inline", filename="Visual.png")
+        mime_img.add_header("Content-Disposition", "inline", filename=\"Visual.png\"")
+        mime_img.add_header("X-Attachment-Id", "visual")
         msg.attach(mime_img)
     # LOGO 1
     with open("assets/logo Coliberate.png", "rb") as img:
         mime_img = MIMEImage(img.read(), _subtype="png")
         mime_img.add_header("Content-ID", "<logo_coliberate>")
-        mime_img.add_header("Content-Disposition", "inline", filename="logo1.png")
+        mime_img.add_header("Content-Disposition", "inline", filename=\"logo_coliberate.png\"")
+        mime_img.add_header("X-Attachment-Id", "logo_coliberate")
         msg.attach(mime_img)
 
     # LOGO 2
     with open("assets/logo KULtivating.png", "rb") as img:
         mime_img = MIMEImage(img.read(), _subtype="png")
         mime_img.add_header("Content-ID", "<logo_kultivating>")
-        mime_img.add_header("Content-Disposition", "inline", filename="logo2.png")
+        mime_img.add_header("Content-Disposition", "inline", filename="\"logo_kultivating.png\"")
+        mime_img.add_header("X-Attachment-Id", "logo_kultivating")
         msg.attach(mime_img)
 
     server = smtplib.SMTP("smtp.gmail.com", 587)
@@ -64,10 +67,7 @@ def build_email_report(report, naam):
             <img src="cid:logo_coliberate" height="60"  style="margin-right:10px;">
             <img src="cid:logo_kultivating" height="60">
         </div>
-        
-        <p>TEST LOGO:</p>
-        <img src="cid:logo_coliberate">
-    
+          
         <h1>Feedbackrapport Organisatiescan Adaptiviteit</h1>
 
         <h2>Beste {naam},</h2>

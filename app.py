@@ -30,14 +30,14 @@ def send_email(to_email, subject, html_content):
     with open("assets/Visual.png", "rb") as img:
         mime_img = MIMEImage(img.read(), _subtype="png")
         mime_img.add_header("Content-ID", "<visual>")
-        mime_img.add_header("Content-Disposition", "inline", filename=\"Visual.png\"")
+        mime_img.add_header("Content-Disposition", "inline", filename="Visual.png")
         mime_img.add_header("X-Attachment-Id", "visual")
         msg.attach(mime_img)
     # LOGO 1
     with open("assets/logo Coliberate.png", "rb") as img:
         mime_img = MIMEImage(img.read(), _subtype="png")
         mime_img.add_header("Content-ID", "<logo_coliberate>")
-        mime_img.add_header("Content-Disposition", "inline", filename=\"logo_coliberate.png\"")
+        mime_img.add_header("Content-Disposition", "inline", filename="logo_coliberate.png")
         mime_img.add_header("X-Attachment-Id", "logo_coliberate")
         msg.attach(mime_img)
 
@@ -45,7 +45,7 @@ def send_email(to_email, subject, html_content):
     with open("assets/logo KULtivating.png", "rb") as img:
         mime_img = MIMEImage(img.read(), _subtype="png")
         mime_img.add_header("Content-ID", "<logo_kultivating>")
-        mime_img.add_header("Content-Disposition", "inline", filename="\"logo_kultivating.png\"")
+        mime_img.add_header("Content-Disposition", "inline", filename="logo_kultivating.png")
         mime_img.add_header("X-Attachment-Id", "logo_kultivating")
         msg.attach(mime_img)
 

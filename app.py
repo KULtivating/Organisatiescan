@@ -212,52 +212,50 @@ def build_email_report(report, naam):
             html += "</ul>"
 
     html += """
-    <hr>
-
-    html += """
     <h3>Verder verdiepen in adaptiviteit?</h3>
-
+    
     <p>
     Deze scan geeft je inzicht in: de <b>context</b> waarin dit gedrag ontstaat.
     Zo kan je beter begrijpen welke factoren in je omgeving jouw adaptief gedrag versterken of net belemmeren.
     </p>
-
+    
     <p>
     Daarnaast hebben we ook een adaptiviteitsscan. Deze geeft jou een beter inzicht in hoe het vandaag al gesteld is met jouw adaptief gedrag.
     Op basis van jouw profiel krijg je enkele tips om meteen aan de slag te gaan naar nog meer adaptiviteit.
     </p>
-
+    
     <p>
     Ontdek de adaptiviteitsscan hier:<br>
     <a href="https://adaptivityscan.streamlit.app/" target="_blank">
     Adaptiviteitsscan
     </a>
     </p>
-
+    
     <hr>
     
     <h3>Vragen of samen verder aan de slag?</h3>
-
+    
     <p>
     We hopen dat dit rapport je helpt om inzicht te krijgen in hoe adaptiviteit zich in jouw context ontwikkelt, en waar mogelijke groeikansen liggen.
     </p>
-
+    
     <p>
     Heb je vragen over de resultaten, of wil je samen verkennen wat dit kan betekenen voor jouw team of organisatie, dan kan je ons gerust contacteren.
     We gaan graag in gesprek om de inzichten te duiden en mee te denken over mogelijke vervolgstappen.
     </p>
-
+    
     <p>
     Daarnaast begeleiden we organisaties ook in het ruimer uitrollen van deze scan en het vertalen van de resultaten naar concrete acties op team- en organisatieniveau.
     </p>
-
+    
     <p>
     Dank je wel voor je deelname.
     </p>
-
+    
     </body>
     </html>
     """
+    
 
     return html
 # ---------------------------

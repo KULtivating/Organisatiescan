@@ -153,8 +153,8 @@ def build_email_report(report, naam):
     }
 
     individu_dims = ["Capaciteit", "Motivatie", "Job Karakteristieken"]
-    team_dims = ["Teamadaptiviteit", "Teamklimaat", "Richting & steun van leidinggevende"]
-    organisatie_dims = ["Organisatieadaptiviteit", "Richting & Steun van Organisatie", "Organisatieklimaat", "HR"]
+    team_dims = ["Teamadaptiviteit", "Teamklimaat", "Richting & steun leidinggevende"]
+    organisatie_dims = ["Organisatieadaptiviteit", "Richting & steun van organisatie", "Organisatieklimaat", "HR"]
 
     # ---------------------------
     # DIMENSIES LOOP
@@ -816,9 +816,9 @@ context_dims = [
     "Job Karakteristieken"
     "Teamadaptiviteit",
     "Teamklimaat",
-    "Richting & steun van leidinggevende",
+    "Richting & steun leidinggevende",
     "Organisatieadaptiviteit",
-    "Richting & Steun van Organisatie",
+    "Richting & steun van organisatie",
     "Organisatieklimaat",
     "HR"
 ]

@@ -64,7 +64,10 @@ def build_email_report(report, naam):
             <img src="cid:logo_coliberate" height="60"  style="margin-right:10px;">
             <img src="cid:logo_kultivating" height="60">
         </div>
-
+        
+        <p>TEST LOGO:</p>
+        <img src="cid:logo_coliberate">
+    
         <h1>Feedbackrapport Organisatiescan Adaptiviteit</h1>
 
         <h2>Beste {naam},</h2>

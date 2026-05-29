@@ -89,7 +89,7 @@ def build_email_report(report, naam):
         maar iets dat groeit door ervaring, context, ondersteuning en bewust gedrag. In dit rapport willen we vooral kijken naar alle elementen die samen jouw adaptief gedrag helpen vormen.
         </p>
 
-        <p>In dit rapport bekijken we hoe jouw persoonlijke adaptiviteit beïnvloedt kan worden vanuit drie samenhangende niveaus:</p>
+        <p>In dit rapport bekijken we hoe jouw persoonlijke adaptiviteit versterkt kan worden vanuit drie samenhangende niveaus:</p>
 
         <ol>
             <li><b>Individu</b> : in welke mate beschik je zelf over de capaciteit, motivatie en werkomstandigheden om je aan te passen.</li>

@@ -212,6 +212,8 @@ def build_email_report(report, naam):
             html += "</ul>"
 
     html += """
+        
+    <hr>
     <h3>Verder verdiepen in adaptiviteit?</h3>
     
     <p>

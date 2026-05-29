@@ -228,7 +228,7 @@ def build_email_report(report, naam):
     </p>
 
     <p>
-    👉 Ontdek de adaptiviteitsscan hier:<br>
+    Ontdek de adaptiviteitsscan hier:<br>
     <a href="https://adaptivityscan.streamlit.app/" target="_blank">
     Adaptiviteitsscan
     </a>

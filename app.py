@@ -68,7 +68,7 @@ def build_email_report(report, naam):
             <img src="cid:logo_kultivating" height="60">
         </div>
           
-        <h1>Feedbackrapport Organisatiescan Adaptiviteit</h1>
+        <h1>Feedbackrapport Systeemscan Adaptiviteit</h1>
 
         <h2>Beste {naam},</h2>
 
@@ -266,14 +266,14 @@ def build_email_report(report, naam):
 st.markdown('<div id="top"></div>', unsafe_allow_html=True)
 
 st.set_page_config(
-    page_title="Adaptiviteit Organisatiescan",
+    page_title="Adaptiviteit Systeemscan",
     layout="wide"
 )
 
 col1, col2 = st.columns([4, 1])
 
 with col1:
-    st.title("Adaptiviteit Organisatiescan")
+    st.title("Adaptiviteit Systeemscan")
 #   st.markdown("### Hoe futureproof ben jij?")
 
 with col2:
@@ -981,7 +981,7 @@ elif st.session_state.step == 2:
     # ---------------------------
     answers = st.session_state.answers
 
-    st.subheader("Stap 2: Adaptiviteitsscan")
+    st.subheader("Stap 2: Systeemscan")
 
     # ---------------------------
     # QUESTIONS (ALL IN ONE PAGE)
@@ -1106,7 +1106,7 @@ elif st.session_state.step == 3:
 
         send_email(
             st.session_state.email,
-            "Jouw Rapport van de Adaptiviteit Organisatiescan",
+            "Jouw Rapport van de Adaptiviteit Systeemscan",
             html_report
         )
 

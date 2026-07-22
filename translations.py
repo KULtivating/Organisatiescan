@@ -7,6 +7,10 @@ UI_TEXTS = {
         "title": "Adaptiviteit Systeemscan", "intro": "Ontdek welke individuele, team- en organisatiefactoren jouw adaptief gedrag ondersteunen of belemmeren.",
         "details_step": "Stap 1 · Je gegevens", "details_title": "Vertel ons kort wie je bent", "details_intro": "Vul de systeemscan in en ontdek wat jij en je omgeving kunnen doen om adaptiever te worden.",
         "name": "Naam", "email": "E-mailadres (optioneel)", "email_help": "We bewaren dit alleen zodat we je resultaat later eventueel kunnen bezorgen. Er wordt nu geen e-mail verstuurd.", "role": "Functie", "organisation": "Organisatie", "start": "Start vragenlijst",
+        "manager_question": "Geef je rechtstreeks leiding aan medewerkers?", "yes": "Ja", "no": "Nee", "manager_required": "Duid aan of je rechtstreeks leiding geeft aan medewerkers.",
+        "self_leadership_title": "Jouw eigen leiderschap", "self_leadership_intro": "Vul dit in met het team waaraan je leiding geeft in gedachten.",
+        "own_manager_title": "Jouw eigen leidinggevende", "own_manager_intro": "Hieronder vragen we je ook om enkele vragen over je eigen leidinggevende in te vullen.",
+        "self_leadership_result": "Jouw adaptief leiderschap", "self_leadership_result_intro": "Deze aanvullende score vat samen hoe je je eigen leiderschap ervaart in het team waaraan je leiding geeft.",
         "part": "Deel {current} van 3", "part_individual": "Individuele basis", "part_team": "Team & leidinggevende", "part_organisation": "Organisatie",
         "part_instruction": "Duid voor elke uitspraak aan in welke mate je ermee akkoord gaat.", "previous": "Vorige", "next": "Volgende", "show_result": "Toon mijn resultaat", "missing": "Vul alle vragen in dit deel in.", "complete": "Dit deel is volledig ingevuld.",
         "scale": ["Helemaal oneens", "Oneens", "Neutraal", "Eens", "Helemaal eens"],
@@ -14,7 +18,7 @@ UI_TEXTS = {
         "model": "Het overkoepelende model", "stands_out": "Wat valt op?", "strongest": "Sterkste ondersteunende factor", "development": "Grootste ontwikkelkans",
         "higher_than": "Hoger dan ongeveer {p}% van de referentiegroep", "lower_context": "Deze factor wordt relatief minder sterk ervaren en kan een zinvolle ontwikkelhefboom zijn.",
         "summary_note": "Gebruik vooral het patroon over de drie niveaus als vertrekpunt: een lagere score is geen oordeel, maar wijst op een mogelijke hefboom voor meer adaptiviteit.",
-        "score_interpretation": "Vergelijking met referentiegroep", "your_interpretation": "Jouw interpretatie", "restart": "Opnieuw invullen",
+        "score_interpretation": "Externe vergelijking", "your_interpretation": "Jouw interpretatie", "restart": "Opnieuw invullen",
         "percentile_guide": "De vergelijking toont hoeveel procent van de externe referentiegroep lager scoort. ‘Hoger dan ongeveer 76%’ is dus geen percentage juiste antwoorden.",
         "level_low": "Zeer laag", "level_below_avg": "Eerder laag", "level_average": "Rond het midden", "level_above_avg": "Eerder hoog", "level_high": "Zeer hoog",
     },
@@ -22,6 +26,10 @@ UI_TEXTS = {
         "title": "Scan systémique de l’adaptabilité", "intro": "Découvrez quels facteurs individuels, collectifs et organisationnels soutiennent ou freinent votre comportement adaptatif.",
         "details_step": "Étape 1 · Vos informations", "details_title": "Parlez-nous brièvement de vous", "details_intro": "Complétez le scan et découvrez ce que vous et votre environnement pouvez faire pour renforcer votre adaptabilité.",
         "name": "Nom", "email": "Adresse e-mail (facultatif)", "email_help": "Nous la conservons uniquement afin de pouvoir éventuellement vous transmettre votre résultat plus tard. Aucun e-mail n’est envoyé maintenant.", "role": "Fonction", "organisation": "Organisation", "start": "Commencer le questionnaire",
+        "manager_question": "Supervisez-vous directement des collaborateurs ?", "yes": "Oui", "no": "Non", "manager_required": "Indiquez si vous supervisez directement des collaborateurs.",
+        "self_leadership_title": "Votre propre leadership", "self_leadership_intro": "Répondez en pensant à l’équipe que vous dirigez.",
+        "own_manager_title": "Votre propre responsable", "own_manager_intro": "Nous vous demandons également de répondre à quelques questions concernant votre propre responsable.",
+        "self_leadership_result": "Votre leadership adaptatif", "self_leadership_result_intro": "Ce score complémentaire résume la manière dont vous percevez votre propre leadership auprès de l’équipe que vous dirigez.",
         "part": "Partie {current} sur 3", "part_individual": "Base individuelle", "part_team": "Équipe & responsable", "part_organisation": "Organisation",
         "part_instruction": "Pour chaque affirmation, indiquez dans quelle mesure vous êtes d’accord.", "previous": "Précédent", "next": "Suivant", "show_result": "Afficher mon résultat", "missing": "Répondez à toutes les questions de cette partie.", "complete": "Cette partie est entièrement complétée.",
         "scale": ["Pas du tout d’accord", "Pas d’accord", "Neutre", "D’accord", "Tout à fait d’accord"],
@@ -29,7 +37,7 @@ UI_TEXTS = {
         "model": "Le modèle global", "stands_out": "Que retenir ?", "strongest": "Facteur de soutien le plus fort", "development": "Principale opportunité de développement",
         "higher_than": "Score supérieur à celui d’environ {p}% du groupe de référence", "lower_context": "Ce facteur est vécu comme relativement moins présent et peut constituer un levier de développement pertinent.",
         "summary_note": "Utilisez surtout le profil à travers les trois niveaux comme point de départ : un score plus faible n’est pas un jugement, mais indique un levier potentiel d’adaptabilité.",
-        "score_interpretation": "Comparaison avec le groupe de référence", "your_interpretation": "Votre interprétation", "restart": "Recommencer",
+        "score_interpretation": "Comparaison externe", "your_interpretation": "Votre interprétation", "restart": "Recommencer",
         "percentile_guide": "La comparaison indique le pourcentage du groupe de référence externe qui obtient un score inférieur. « Supérieur à environ 76 % » n’est donc pas un pourcentage de bonnes réponses.",
         "level_low": "Très faible", "level_below_avg": "Plutôt faible", "level_average": "Dans la moyenne", "level_above_avg": "Plutôt élevé", "level_high": "Très élevé",
     },
@@ -37,6 +45,10 @@ UI_TEXTS = {
         "title": "Adaptability System Scan", "intro": "Discover which individual, team and organisational factors support or hinder your adaptive behaviour.",
         "details_step": "Step 1 · Your details", "details_title": "Tell us a little about yourself", "details_intro": "Complete the system scan and discover what you and your environment can do to strengthen adaptability.",
         "name": "Name", "email": "Email address (optional)", "email_help": "We only store this so that we may send you your result later. No email is sent now.", "role": "Role", "organisation": "Organisation", "start": "Start questionnaire",
+        "manager_question": "Do you directly manage employees?", "yes": "Yes", "no": "No", "manager_required": "Indicate whether you directly manage employees.",
+        "self_leadership_title": "Your own leadership", "self_leadership_intro": "Answer with the team you lead in mind.",
+        "own_manager_title": "Your own manager", "own_manager_intro": "We also ask you to answer several questions about your own manager.",
+        "self_leadership_result": "Your adaptive leadership", "self_leadership_result_intro": "This additional score summarises how you experience your own leadership of the team you manage.",
         "part": "Part {current} of 3", "part_individual": "Individual foundation", "part_team": "Team & manager", "part_organisation": "Organisation",
         "part_instruction": "For each statement, indicate how strongly you agree.", "previous": "Previous", "next": "Next", "show_result": "Show my result", "missing": "Answer all questions in this part.", "complete": "This part is complete.",
         "scale": ["Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"],
@@ -44,7 +56,7 @@ UI_TEXTS = {
         "model": "The overarching model", "stands_out": "What stands out?", "strongest": "Strongest supporting factor", "development": "Main development opportunity",
         "higher_than": "Higher than approximately {p}% of the reference group", "lower_context": "This factor is experienced as relatively less present and may be a meaningful development lever.",
         "summary_note": "Use the pattern across the three levels as your starting point: a lower score is not a judgement, but indicates a potential lever for greater adaptability.",
-        "score_interpretation": "Comparison with reference group", "your_interpretation": "Your interpretation", "restart": "Start again",
+        "score_interpretation": "External comparison", "your_interpretation": "Your interpretation", "restart": "Start again",
         "percentile_guide": "The comparison shows what percentage of the external reference group scored lower. ‘Higher than approximately 76%’ is therefore not a percentage of correct answers.",
         "level_low": "Very low", "level_below_avg": "Rather low", "level_average": "Around the middle", "level_above_avg": "Rather high", "level_high": "Very high",
     },
@@ -75,6 +87,14 @@ QUESTION_TRANSLATIONS = {
 "CR_CE2":"My organisation succeeds in motivating people to adapt the way they work to new circumstances.","CR_K1":"My organisation knows how to support employees in continuing to learn and adapt.","CR_K2":"My organisation has a clear understanding of what is needed to adapt to changes in its environment.","CR_A1":"My organisation has sufficient resources to adapt to change.","CR_A2":"My organisation gives employees room to learn and grow.","CR_A3":"My organisation gives me enough time to prepare for or adapt to changes.","OL_KT2":"My organisation has tools, such as manuals, routines and databases, to preserve knowledge from the past even when colleagues change.","OL_S1":"All levels of the organisation know how they contribute to the overall goals.","OL_S2":"All levels of the organisation are connected and work well together.","AD_CD":"When we work with other teams, it is clear who should make which decisions.",
 "OL_O1":"My organisation encourages experimentation and innovation to improve processes.","OL_O2":"My organisation looks at what other organisations do and adopts useful ideas.","OL_O3":"Ideas and experiences from external partners, such as advisers or customers, are considered valuable sources of learning.","OL_O4":"Sharing opinions and ideas about improving work processes is part of our organisational culture.","OL_MC4":"New ideas that work well are rewarded.","OL_KT1":"Mistakes are discussed and analysed at every level of the organisation.","HR_Train":"My organisation provides training to help employees adapt better to change.","HR_Comp":"Employees who deal with change very proactively receive additional opportunities or rewards.","HR_PerfApp":"Performance reviews focus on developing change-related skills.","HR_Selec":"When recruiting, we consider how well candidates can adapt."
 }}
+
+SELF_LEADERSHIP_TRANSLATIONS = {
+"nl": {
+"SELF_COM_ADAP1":"Ik stimuleer creativiteit en nieuwe ideeën in mijn team.","SELF_COM_ADAP2":"Ik zorg dat we leren van fouten en samen kunnen groeien.","SELF_COM-O4":"Ik geef het goede voorbeeld in hoe om te gaan met veranderingen.","SELF_COM_ADM1":"Ik stel duidelijke doelen, meet voortgang én bespreek deze met mijn team.","SELF_COM_ADM2":"Ik geef structuur en planning aan het werk van mijn team.","SELF_COM_ENAB1":"Ik creëer een context waarin teamleden verschillende meningen openlijk kunnen bespreken.","SELF_COM_ENAB2":"Ik help teamleden met elkaar te verbinden zodat ze van elkaar kunnen leren."},
+"fr": {
+"SELF_COM_ADAP1":"Je stimule la créativité et les nouvelles idées dans mon équipe.","SELF_COM_ADAP2":"Je veille à ce que nous apprenions de nos erreurs et puissions progresser ensemble.","SELF_COM-O4":"Je montre l’exemple dans ma manière de gérer le changement.","SELF_COM_ADM1":"Je fixe des objectifs clairs, mesure les progrès et en discute avec mon équipe.","SELF_COM_ADM2":"J’apporte de la structure et de la planification au travail de mon équipe.","SELF_COM_ENAB1":"Je crée un contexte dans lequel les membres de l’équipe peuvent discuter ouvertement de points de vue différents.","SELF_COM_ENAB2":"J’aide les membres de l’équipe à créer des liens afin qu’ils puissent apprendre les uns des autres."},
+"en": {
+"SELF_COM_ADAP1":"I encourage creativity and new ideas in my team.","SELF_COM_ADAP2":"I ensure that we learn from mistakes and can grow together.","SELF_COM-O4":"I set a good example in how to deal with change.","SELF_COM_ADM1":"I set clear goals, measure progress and discuss it with my team.","SELF_COM_ADM2":"I provide structure and planning for my team’s work.","SELF_COM_ENAB1":"I create a setting in which team members can openly discuss different opinions.","SELF_COM_ENAB2":"I help team members connect so that they can learn from one another."}}
 
 DIMENSION_LABELS = {
 "nl":{"Capaciteit":"Capaciteit","Motivatie":"Motivatie","Job Karakteristieken":"Jobkarakteristieken","Teamadaptiviteit":"Teamadaptiviteit","Teamklimaat":"Teamklimaat","Richting & steun leidinggevende":"Leidinggevende","Organisatieadaptiviteit":"Organisatieadaptiviteit","Richting & steun van organisatie":"Richting & steun van organisatie","Organisatieklimaat":"Organisatieklimaat","HR":"HR-beleid"},

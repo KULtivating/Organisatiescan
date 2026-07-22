@@ -185,7 +185,7 @@ question_map = {
 QUESTION_TEXTS = {"nl": {meta["code"]: text for text, meta in question_map.items()}}
 QUESTION_TEXTS.update(QUESTION_TRANSLATIONS)
 QUESTION_META = {meta["code"]: {**meta} for meta in question_map.values()}
-QUESTION_CODES = list(QUESTION_TEXTS)
+QUESTION_CODES = list(QUESTION_META)
 
 # ---------------------------
 # CLUSTERING EN FEEDBACK 

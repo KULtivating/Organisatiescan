@@ -5,280 +5,18 @@ import plotly.express as px
 import gspread
 import streamlit.components.v1 as components
 from google.oauth2.service_account import Credentials
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.image import MIMEImage
 
-# ---------------------------
-# EMAIL VERSTUREN & ACCOUNT
-# ---------------------------
-def send_email(to_email, subject, html_content):
-    sender_email = st.secrets["gmail_user"]
-    sender_password = st.secrets["gmail_password"]
-
-    msg = MIMEMultipart("related")
-    msg["Subject"] = subject
-    msg["From"] = sender_email
-    msg["To"] = to_email
-
-    msg_alternative = MIMEMultipart("alternative")
-    msg.attach(msg_alternative)
-    msg_alternative.attach(MIMEText(html_content, "html"))
-
-    # Voeg Visual.png toe als inline image
-    with open("assets/Visual.png", "rb") as img:
-        mime_img = MIMEImage(img.read(), _subtype="png")
-        mime_img.add_header("Content-ID", "<visual>")
-        mime_img.add_header("Content-Disposition", "inline", filename="Visual.png")
-        mime_img.add_header("X-Attachment-Id", "visual")
-        msg.attach(mime_img)
-    # LOGO 1
-    with open("assets/logo Coliberate.png", "rb") as img:
-        mime_img = MIMEImage(img.read(), _subtype="png")
-        mime_img.add_header("Content-ID", "<logo_coliberate>")
-        mime_img.add_header("Content-Disposition", "inline", filename="logo_coliberate.png")
-        mime_img.add_header("X-Attachment-Id", "logo_coliberate")
-        msg.attach(mime_img)
-
-    # LOGO 2
-    with open("assets/logo KULtivating.png", "rb") as img:
-        mime_img = MIMEImage(img.read(), _subtype="png")
-        mime_img.add_header("Content-ID", "<logo_kultivating>")
-        mime_img.add_header("Content-Disposition", "inline", filename="logo_kultivating.png")
-        mime_img.add_header("X-Attachment-Id", "logo_kultivating")
-        msg.attach(mime_img)
-
-    server = smtplib.SMTP("smtp.gmail.com", 587)
-    server.starttls()
-    server.login(sender_email, sender_password)
-    server.send_message(msg)
-    server.quit()
-
-# ---------------------------
-# EMAIL TEKST
-# ---------------------------
-def build_email_report(report, naam):
-    html = f"""
-    <html>
-    <body>
-
-        <div style="width:100%; display:block; text-align:right;">
-            <img src="cid:logo_coliberate" height="60"  style="margin-right:10px;">
-            <img src="cid:logo_kultivating" height="60">
-        </div>
-          
-        <h1>Feedbackrapport Systeemscan Adaptiviteit</h1>
-
-        <h2>Beste {naam},</h2>
-
-        <p>Hieronder vind je jouw persoonlijke adaptiviteitsrapport.</p>
-
-        <h2>Inleiding: het overkoepelende model</h2>
-
-        <p>
-        Adaptiviteit is het vermogen om effectief om te gaan met verandering, onzekerheid en nieuwe uitdagingen,
-        en daarbij niet alleen goed te blijven functioneren, maar ook bewust te blijven leren, verbeteren en vooruitdenken.
-        Het gaat dus niet alleen over reageren wanneer verandering zich aandient, maar ook over de mate waarin iemand,
-        een team of een organisatie verandering actief kan opnemen, vormgeven en zelfs anticiperen op wat nog komt.
-        </p>
-
-        <p>
-        Binnen ons model bekijken we adaptiviteit als een ontwikkelbare maturiteit: van eerder reactief omgaan met verandering,
-        naar proactief vooruitdenken en uiteindelijk verandering mee helpen creëren. Adaptiviteit is dus geen vast persoonlijk kenmerk,
-        maar iets dat groeit door ervaring, context, ondersteuning en bewust gedrag. In dit rapport willen we vooral kijken naar alle elementen die samen jouw adaptief gedrag helpen vormen.
-        </p>
-
-        <p>In dit rapport bekijken we hoe jouw persoonlijke adaptiviteit versterkt kan worden vanuit drie samenhangende niveaus:</p>
-
-        <ol>
-            <li><b>Individu</b> : in welke mate beschik je zelf over de capaciteit, motivatie en werkomstandigheden om je aan te passen.</li>
-            <li><b>Team & directe leidinggevende</b> : in welke mate ondersteunt je team en je leidinggevende een flexibele, lerende en wendbare manier van werken.</li>
-            <li><b>Organisatie</b> : in welke mate creëert de bredere organisatie de juiste cultuur, systemen en ondersteuning om adaptiviteit mogelijk te maken.</li>
-        </ol>
-
-        <p>
-        Deze drie niveaus zijn van elkaar afhankelijk en beïnvloeden elkaar voortdurend. Individuele adaptiviteit groeit sterker
-        in een team dat openstaat voor leren. Teams functioneren beter in een organisatie die ruimte geeft voor aanpassing en ontwikkeling.
-        </p>
-
-        <p>
-        We nemen deze dimensies op omdat onderzoek én praktijk tonen dat adaptiviteit nooit alleen individueel bepaald wordt.
-        Wie duurzaam wil groeien in aanpassingsvermogen, heeft zowel persoonlijke sterktes als sociale en organisatorische ondersteuning nodig.
-        In onderstaande figuur vatten we samen wat de kernvoorspellers zijn van adaptief gedrag:
-        </p>
-
-        <img src="cid:visual" width="800">
-
-        <h2>Persoonlijke resultaten</h2>
-    """
-
-    current_block = None
-
-    block_intro = {
-        "individu": """
-        <h2>1. Individueel niveau</h2>
-        <p>
-        Hier ligt jouw persoonlijke basis voor adaptiviteit:
-        je vaardigheden, je motivatie en de kenmerken van je job.
-        Dit gaat over de vraag of je jezelf in staat voelt om veranderingen aan te pakken,
-        of je daar ook energie uit haalt, en of jouw specifieke job dit ook mogelijk maakt.
-        </p>
-        """,
-
-        "team": """
-        <h2>2. Team & directe leidinggevende</h2>
-        <p>
-        Adaptief zijn doe je niet alleen. Een erg belangrijke rol is voorzien voor diegenen
-        waar een werknemer op dagelijkse basis het meeste contact heeft: collega's en directe leidinggevende(n).
-        Zij tonen door hun eigen gedrag of adaptiviteit belangrijk is en gewaardeerd wordt.
-        Daarbij zorgt de teamsfeer en relatie met de leidinggevende ervoor of mensen zich veilig voelen om bij te sturen,
-        nieuwe ideeën te testen en te leren uit fouten.
-        In dit blok kijken we dus naar het team dat jou direct omringt en ondersteunt.
-        </p>
-        """,
-
-        "organisatie": """
-        <h2>3. Organisatie</h2>
-        <p>
-        Adaptiviteit binnen een organisatie wordt niet alleen bepaald door individuen of teams,
-        maar ook door de bredere structuren, systemen en cultuur waarin zij werken.
-        Organisatorische factoren bepalen in grote mate of verandering wordt gefaciliteerd,
-        ondersteund en duurzaam verankerd.
-        In dit blok kijken we naar de manier waarop de organisatie als geheel richting geeft aan verandering,
-        leren ondersteunt en samenwerking, middelen en systemen inzet om zich aan te passen
-        aan een veranderende omgeving.
-        </p>
-        """
-    }
-
-    individu_dims = ["Capaciteit", "Motivatie", "Job Karakteristieken"]
-    team_dims = ["Teamadaptiviteit", "Teamklimaat", "Richting & steun leidinggevende"]
-    organisatie_dims = ["Organisatieadaptiviteit", "Richting & steun van organisatie", "Organisatieklimaat", "HR"]
-
-    # ---------------------------
-    # DIMENSIES LOOP
-    # ---------------------------
-    for dim, d in report.items():
-
-        if dim in individu_dims and current_block != "individu":
-            if current_block is not None:
-                    html += '<hr style="margin:20px 0;">'
-            html += block_intro["individu"]
-            current_block = "individu"
-
-        elif dim in team_dims and current_block != "team":
-            if current_block is not None:
-                    html += '<hr style="margin:20px 0;">'
-            html += block_intro["team"]
-            current_block = "team"
-
-        elif dim in organisatie_dims and current_block != "organisatie":
-            if current_block is not None:
-                    html += '<hr style="margin:20px 0;">'
-            html += block_intro["organisatie"]
-            current_block = "organisatie"
-
-        html += f"""
-        <h3>{d['meta']['title']}</h3>
-
-        <p>
-            <b>Score:</b> {d['score']} /5 |
-            <b>Percentiel:</b> {d['percentile']}%
-        </p>
-
-        <p>
-        <b>Interpretatie percentiel:</b>
-        Je scoort hoger dan ongeveer {d['percentile']}% van de respondenten.
-        {d['text']}
-        </p>
-
-        <p>{d['meta']['description']}</p>
-        """
-
-        # subdimensies
-        if d.get("subdimension"):
-            html += '<ul style="margin:0; padding-left:18px; line-height:1.3;">'
-
-            for sub, subdata in d["subdimension"].items():
-                html += f"""
-                <li style="margin-bottom:6px;">
-                    <b>{sub}</b><br>
-                    Score: {subdata['score']} /5<br>
-                    {subdata['description']}
-                </li>
-                """
-
-            html += "</ul>"
-
-    html += """
-        
-    <hr>
-    <h3>Verder verdiepen in adaptiviteit?</h3>
-    
-    <p>
-    Deze scan geeft je inzicht in: de <b>context</b> waarin dit gedrag ontstaat.
-    Zo kan je beter begrijpen welke factoren in je omgeving jouw adaptief gedrag versterken of net belemmeren.
-    </p>
-    
-    <p>
-    Daarnaast hebben we ook een adaptiviteitsscan. Deze geeft jou een beter inzicht in hoe het vandaag al gesteld is met jouw adaptief gedrag.
-    Op basis van jouw profiel krijg je enkele tips om meteen aan de slag te gaan naar nog meer adaptiviteit.
-    </p>
-    
-    <p>
-    Ontdek de adaptiviteitsscan hier:<br>
-    <a href="https://adaptivityscan.streamlit.app/" target="_blank">
-    Adaptiviteitsscan
-    </a>
-    </p>
-    
-    <hr>
-    
-    <h3>Vragen of samen verder aan de slag?</h3>
-    
-    <p>
-    We hopen dat dit rapport je helpt om inzicht te krijgen in hoe adaptiviteit zich in jouw context ontwikkelt, en waar mogelijke groeikansen liggen.
-    </p>
-    
-    <p>
-    Heb je vragen over de resultaten, of wil je samen verkennen wat dit kan betekenen voor jouw team of organisatie, dan kan je ons gerust contacteren.
-    We gaan graag in gesprek om de inzichten te duiden en mee te denken over mogelijke vervolgstappen.
-    </p>
-    
-    <p>
-    Daarnaast begeleiden we organisaties ook in het ruimer uitrollen van deze scan en het vertalen van de resultaten naar concrete acties op team- en organisatieniveau.
-    </p>
-    
-    <p>
-    Dank je wel voor je deelname.
-    </p>
-    
-    </body>
-    </html>
-    """
-    
-
-    return html
 # ---------------------------
 # APP CONFIG
 # ---------------------------
-st.markdown('<div id="top"></div>', unsafe_allow_html=True)
-
 st.set_page_config(
     page_title="Adaptiviteit Systeemscan",
-    layout="wide"
+    page_icon="🌱",
+    layout="wide",
+    initial_sidebar_state="collapsed",
 )
 
-col1, col2 = st.columns([4, 1])
-
-with col1:
-    st.title("Adaptiviteit Systeemscan")
-#   st.markdown("### Hoe futureproof ben jij?")
-
-with col2:
-    st.image("assets/logo Coliberate.png", width=100)
-    st.image("assets/logo KULtivating.webp", width=100)
+st.markdown('<div id="top"></div>', unsafe_allow_html=True)
 
 # ---------------------------
 # GOOGLE SHEETS CONNECTION
@@ -304,6 +42,16 @@ def connect_sheet():
 
 sheet = connect_sheet()
 
+
+def ensure_language_column(worksheet):
+    headers = worksheet.row_values(1)
+    normalized = [str(header).strip().lower() for header in headers]
+    if "taal" in normalized:
+        return normalized.index("taal") + 1
+    language_column = len(headers) + 1
+    worksheet.update_cell(1, language_column, "taal")
+    return language_column
+
 # ---------------------------
 # SESSION STATE
 # ---------------------------
@@ -312,9 +60,6 @@ if "step" not in st.session_state:
 
 if "answers" not in st.session_state:
     st.session_state.answers = {}
-
-if "email_sent" not in st.session_state:
-    st.session_state.email_sent = False
 
 # ---------------------------
 # QUESTION MAP
@@ -423,6 +168,12 @@ question_map = {
 "Bij werving letten we op de mate waarin kandidaten zich goed kunnen aanpassen.": {"dimension":"HR","subdimension":None,"code":"HR_Selec","direction":"pos"}
 
 }
+
+# Stabiele technische sleutels: zichtbare teksten kunnen later vertaald worden
+# zonder scoring of historische gegevens te beïnvloeden.
+QUESTION_TEXTS = {meta["code"]: text for text, meta in question_map.items()}
+QUESTION_META = {meta["code"]: {**meta} for meta in question_map.values()}
+QUESTION_CODES = list(QUESTION_TEXTS)
 
 # ---------------------------
 # CLUSTERING EN FEEDBACK 
@@ -773,11 +524,11 @@ percentile_data = {
     ],
 }
 
-def build_dimension_scores(answers, question_map):
+def build_dimension_scores(answers):
     dim_scores = {}
 
-    for question, score in answers.items():
-        meta = question_map[question]
+    for code, score in answers.items():
+        meta = QUESTION_META[code]
         final_score = 6 - score if meta["direction"] == "neg" else score
 
         dim = meta["dimension"]
@@ -935,28 +686,134 @@ def build_report(dim_scores, percentiles_df):
 
     return report
 
+
+DIMENSION_GROUPS = {
+    "Individuele basis": ["Capaciteit", "Motivatie", "Job Karakteristieken"],
+    "Team & leidinggevende": ["Teamadaptiviteit", "Teamklimaat", "Richting & steun leidinggevende"],
+    "Organisatie": ["Organisatieadaptiviteit", "Richting & steun van organisatie", "Organisatieklimaat", "HR"],
+}
+
+GROUP_INTROS = {
+    "Individuele basis": "Je persoonlijke basis voor adaptiviteit: wat je kan, wat je motiveert en hoe je job is ingericht.",
+    "Team & leidinggevende": "De dagelijkse context waarin samenwerking, veiligheid, leren en leiding jouw adaptiviteit versterken of afremmen.",
+    "Organisatie": "De bredere richting, systemen, cultuur en ondersteuning die duurzaam aanpassen en leren mogelijk maken.",
+}
+
+DIMENSION_SHORT_DESCRIPTIONS = {
+    "Capaciteit": "Vaardigheden, vertrouwen en inzicht om effectief te handelen in nieuwe of complexe situaties.",
+    "Motivatie": "Energie, bereidheid en volharding om met verandering om te gaan.",
+    "Job Karakteristieken": "Jobkenmerken die aanpassen, leren en flexibel handelen ondersteunen of bemoeilijken.",
+    "Teamadaptiviteit": "Hoe flexibel het team reageert, samen leert en zijn werkwijze bijstuurt.",
+    "Teamklimaat": "Open communicatie, vertrouwen, veiligheid en duidelijke samenwerking binnen het team.",
+    "Richting & steun leidinggevende": "Hoe de leidinggevende vernieuwing, structuur en verbinding ondersteunt.",
+    "Organisatieadaptiviteit": "Hoe effectief de organisatie signalen oppikt, leert en zich aanpast.",
+    "Richting & steun van organisatie": "Duidelijke richting, kennis, middelen en afstemming om verandering te ondersteunen.",
+    "Organisatieklimaat": "Ruimte voor experimenteren, innovatie, leren en het delen van ideeën.",
+    "HR": "Hoe HR-praktijken adaptiviteit ondersteunen via selectie, ontwikkeling, evaluatie en waardering.",
+}
+
+DIMENSION_ICONS = {
+    "Capaciteit": '<svg viewBox="0 0 64 64"><path d="M21 48c-8-1-12-7-10-14-5-5-2-14 5-15 1-8 11-11 16-5 5-6 15-3 16 5 8 2 10 12 4 17 2 8-5 14-12 13"/><path d="M32 13v39M22 24c4 1 6 4 6 8M42 24c-4 1-6 4-6 8"/></svg>',
+    "Motivatie": '<svg viewBox="0 0 64 64"><path d="M35 8c3 11-8 13-5 24 3-4 7-7 10-12 7 7 12 15 10 24-2 9-10 14-19 14S14 51 14 41c0-9 6-15 13-22 0 8 3 12 8 15-1-9 5-14 0-26z"/></svg>',
+    "Job Karakteristieken": '<svg viewBox="0 0 64 64"><rect x="8" y="18" width="48" height="34" rx="5"/><path d="M23 18v-6h18v6M8 31h48M27 28h10v7H27z"/></svg>',
+    "Teamadaptiviteit": '<svg viewBox="0 0 64 64"><circle cx="22" cy="24" r="7"/><circle cx="42" cy="24" r="7"/><path d="M8 51c1-10 6-16 14-16s13 6 14 16M28 51c1-10 6-16 14-16s13 6 14 16"/></svg>',
+    "Teamklimaat": '<svg viewBox="0 0 64 64"><path d="M9 13h46v29H31L20 52V42H9z"/><path d="M18 23h28M18 31h19"/></svg>',
+    "Richting & steun leidinggevende": '<svg viewBox="0 0 64 64"><circle cx="32" cy="17" r="8"/><path d="M17 52V40c0-9 7-15 15-15s15 6 15 15v12M8 51h48"/></svg>',
+    "Organisatieadaptiviteit": '<svg viewBox="0 0 64 64"><path d="M12 32a20 20 0 0 1 35-13M46 10v12H34M52 32a20 20 0 0 1-35 13M18 54V42h12"/></svg>',
+    "Richting & steun van organisatie": '<svg viewBox="0 0 64 64"><path d="M8 54h48M13 54V25h38v29M19 25V14h26v11"/><path d="M24 34h5M35 34h5M24 43h5M35 43h5"/></svg>',
+    "Organisatieklimaat": '<svg viewBox="0 0 64 64"><path d="M21 29a11 11 0 1 1 22 0c0 6-3 8-6 12H27c-3-4-6-6-6-12z"/><path d="M27 46h10M29 52h6M32 5v7"/></svg>',
+    "HR": '<svg viewBox="0 0 64 64"><circle cx="22" cy="22" r="7"/><circle cx="42" cy="22" r="7"/><circle cx="32" cy="15" r="7"/><path d="M8 52c1-10 6-16 14-16M56 52c-1-10-6-16-14-16M17 52c1-11 6-18 15-18s14 7 15 18"/></svg>',
+}
+
+PERCENTILE_LABELS = {"low": "Zeer laag", "below_avg": "Eerder laag", "average": "Rond het midden", "above_avg": "Eerder hoog", "high": "Zeer hoog"}
+
+
+def clean_text(text):
+    return " ".join(str(text).split())
+
+
+def dimension_card_html(dimension, data):
+    score = float(data["score"])
+    percentile = float(data["percentile"])
+    subitems = data.get("subdimension", {})
+    sub_html = ""
+    if subitems:
+        rows = "".join(f'<li><b>{name}</b>: {float(item["score"]):.2f} / 5</li>' for name, item in subitems.items())
+        sub_html = f'<ul class="sub-list">{rows}</ul>'
+    return (
+        '<article class="dimension-card">'
+        '<header class="dimension-header">'
+        f'<span class="dimension-icon">{DIMENSION_ICONS[dimension]}</span>'
+        f'<div><h3>{data["meta"]["title"]}</h3><p>{DIMENSION_SHORT_DESCRIPTIONS[dimension]}</p></div>'
+        '</header>'
+        '<div class="score-row">'
+        f'<div class="score-track"><div class="score-fill" style="width:{score / 5 * 100:.1f}%"></div></div>'
+        f'<span class="score-value">{score:.2f} / 5</span></div>'
+        f'<span class="percentile-badge"><b>Interpretatie</b> P{percentile:.0f} · {PERCENTILE_LABELS[data["level"]]}</span>'
+        f'{sub_html}'
+        f'<div class="interpretation-box"><b>Jouw interpretatie</b><p>{clean_text(data["text"])}</p></div>'
+        '</article>'
+    )
+
 st.markdown("""
 <style>
+:root { --primary:#0f566b; --blue:#2aa5ca; --yellow:#ffc271; --light-blue:#eef8fb; --text:#17313b; --muted:#667985; --line:#cfe1e7; }
 html, body, [data-testid="stAppViewContainer"] {
     scroll-behavior: smooth;
+    color:var(--text);
 }
+[data-testid="stAppViewContainer"] { background:linear-gradient(180deg,#f5fbfd 0,#fff 320px); }
+.block-container { max-width:1220px; padding-top:5rem; padding-bottom:4rem; }
+h1,h2,h3 { color:var(--primary)!important; }
+.app-header { padding:1.5rem 1.7rem; margin-bottom:1.4rem; border-radius:0 42px 42px 0; background:var(--primary); color:white; }
+.app-header h1 { color:white!important; margin:0; font-size:2.15rem; }
+.app-header p { color:white; margin:.45rem 0 0; max-width:800px; }
+.section-pill { display:inline-block; margin-bottom:.55rem; padding:.28rem .75rem; border-radius:999px; background:var(--primary); color:white; font-size:.78rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase; }
+.level-intro { padding:1rem 1.15rem; margin:.8rem 0 1rem; border-left:5px solid var(--primary); border-radius:14px; background:var(--light-blue); }
+.dimension-grid { display:grid; gap:1rem; grid-template-columns:repeat(6,minmax(0,1fr)); align-items:stretch; }
+.dimension-card { grid-column:span 2; min-height:100%; padding:1.05rem; border:1.5px solid var(--primary); border-radius:16px; background:white; box-shadow:0 8px 22px rgba(15,86,107,.07); display:flex; flex-direction:column; }
+.dimension-grid.four .dimension-card { grid-column:span 3; }
+.dimension-header { display:grid; grid-template-columns:48px 1fr; gap:.75rem; align-items:start; }
+.dimension-icon { width:46px; height:46px; border-radius:50%; background:var(--primary); color:white; display:grid; place-items:center; }
+.dimension-icon svg { width:68%; height:68%; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+.dimension-card h3 { margin:0 0 .4rem; font-size:1.05rem; line-height:1.2; }
+.dimension-card p { margin:0; font-size:.88rem; line-height:1.42; }
+.score-row { display:flex; gap:.7rem; align-items:center; margin:.9rem 0 .65rem; }
+.score-track { flex:1; height:9px; border-radius:999px; background:#e5f0f3; overflow:hidden; }
+.score-fill { height:100%; background:linear-gradient(90deg,var(--blue),var(--primary)); }
+.score-value { color:var(--primary); font-weight:800; white-space:nowrap; }
+.percentile-badge { display:inline-flex; gap:.45rem; align-items:center; width:max-content; padding:.38rem .65rem; margin-bottom:.7rem; border-radius:10px; background:#fff7eb; color:var(--primary); font-size:.82rem; }
+.interpretation-box { margin-top:auto; padding:.8rem; border-radius:10px; background:var(--light-blue); }
+.sub-list { margin:.65rem 0 .8rem; padding-left:1rem; color:var(--text); font-size:.82rem; }
+.sub-list li { margin:.28rem 0; }
+div[data-testid="stRadio"] label p { font-size:.82rem; }
+@media (min-width:900px) { div[data-testid="stRadio"] div[role="radiogroup"] { flex-wrap:nowrap; gap:.45rem; } }
+.stButton>button { border:0; border-radius:999px; background:var(--primary); color:white; font-weight:700; padding-left:1.25rem; padding-right:1.25rem; }
+.stButton>button:hover { background:#0a4455; color:white; }
+@media(max-width:800px){ .block-container{padding:4.5rem 1rem 3rem}.dimension-grid,.dimension-grid.four{grid-template-columns:1fr}.dimension-card,.dimension-grid.four .dimension-card{grid-column:1}.app-header{margin-left:-1rem;border-radius:0 28px 28px 0}.app-header h1{font-size:1.6rem} }
 </style>
 """, unsafe_allow_html=True)
 
-questions = list(question_map.keys())
+header_left, header_right = st.columns([5,1.35], vertical_alignment="center")
+with header_left:
+    st.markdown('<div class="app-header"><h1>Adaptiviteit Systeemscan</h1><p>Ontdek welke individuele, team- en organisatiefactoren jouw adaptief gedrag ondersteunen of belemmeren.</p></div>', unsafe_allow_html=True)
+with header_right:
+    logo_left, logo_right = st.columns(2, vertical_alignment="center")
+    with logo_left: st.image("assets/logo Coliberate.png", use_container_width=True)
+    with logo_right: st.image("assets/logo KULtivating.webp", use_container_width=True)
 
-scale_map = {"Helemaal oneens":1,"Oneens":2,"Neutraal":3,"Eens":4,"Helemaal eens":5}
+scale_labels = ["Helemaal oneens", "Oneens", "Neutraal", "Eens", "Helemaal eens"]
 
 # ---------------------------
 # STEP 1
 # ---------------------------
 if st.session_state.step == 1:
-    st.subheader ("Vul deze korte vragenlijst (10') in en kom te weten wat jij en je omgeving kunnen doen om je te helpen adaptiever te worden.")
-
-    st.subheader("Stap 1: Je gegevens")
+    st.markdown('<span class="section-pill">Stap 1 · Je gegevens</span>', unsafe_allow_html=True)
+    st.subheader("Vertel ons kort wie je bent")
+    st.write("Vul de systeemscan in en ontdek wat jij en je omgeving kunnen doen om adaptiever te worden.")
 
     naam = st.text_input("Naam")
-    email = st.text_input("Email - hierop ontvang je jouw persoonlijke feedbackrapport")
+    email = st.text_input("E-mailadres (optioneel)", help="We bewaren dit alleen zodat we je resultaat later eventueel kunnen bezorgen. Er wordt nu geen e-mail verstuurd.", placeholder="name@example.com")
     functie = st.text_input("Functie")
     organisatie = st.text_input("Organisatie")
 
@@ -969,8 +826,6 @@ if st.session_state.step == 1:
         st.session_state.step = 2
         st.rerun()
 
-    questions = list(question_map.keys())
-
 # ---------------------------
 # STEP 2 (SINGLE PAGE VERSION)
 # ---------------------------
@@ -981,14 +836,16 @@ elif st.session_state.step == 2:
     # ---------------------------
     answers = st.session_state.answers
 
-    st.subheader("Stap 2: Systeemscan")
+    st.markdown('<span class="section-pill">Stap 2 · Systeemscan</span>', unsafe_allow_html=True)
+    st.subheader("Duid voor elke uitspraak aan in welke mate je ermee akkoord gaat")
 
     # ---------------------------
     # QUESTIONS (ALL IN ONE PAGE)
     # ---------------------------
-    for q in questions:
+    for code in QUESTION_CODES:
+        q = QUESTION_TEXTS[code]
         with st.container():
-            col_q, col_a = st.columns([5, 5])
+            col_q, col_a = st.columns([5, 7], gap="large")
 
             with col_q:
                 st.markdown(f"**{q}**")
@@ -996,22 +853,23 @@ elif st.session_state.step == 2:
             with col_a:
                 selected = st.radio(
                     label="",
-                    options=list(scale_map.keys()),
+                    options=list(range(1, 6)),
+                    format_func=lambda value: scale_labels[value - 1],
                     horizontal=True,
-                    key=q,
+                    key=f"question_{code}",
                     index=None,
                     label_visibility="collapsed"
                 )
 
                 if selected:
-                    answers[q] = scale_map[selected]
+                    answers[code] = selected
 
         st.markdown("<hr style='margin:8px 0; opacity:0.6;'>", unsafe_allow_html=True)
 
     # ---------------------------
     # CHECK COMPLETENESS
     # ---------------------------
-    missing = [q for q in questions if q not in answers]
+    missing = [code for code in QUESTION_CODES if code not in answers]
 
     if missing:
         st.warning("Vul alle vragen in.")
@@ -1021,15 +879,15 @@ elif st.session_state.step == 2:
     # ---------------------------
     # SUBMIT
     # ---------------------------
-    if st.button("Versturen") and not missing:
+    if st.button("Toon mijn resultaat", disabled=bool(missing)):
 
         percentiles_df = percentile_data
 
-        dim_scores = build_dimension_scores(answers, question_map)
+        dim_scores = build_dimension_scores(answers)
         sub_scores = {}
 
-        for question, score in answers.items():
-            meta = question_map[question]
+        for code, score in answers.items():
+            meta = QUESTION_META[code]
             sub = meta["subdimension"]
 
             final_score = 6 - score if meta["direction"] == "neg" else score
@@ -1050,7 +908,7 @@ elif st.session_state.step == 2:
 
             for sub, score in sub_scores.items():
                 # check of sub bij deze dimensie hoort
-                for q, meta in question_map.items():
+                for meta in QUESTION_META.values():
                     if meta["dimension"] == dim and meta["subdimension"] == sub:
                         report[dim]["subdimension"][sub] = {
                             "score": score,
@@ -1064,13 +922,16 @@ elif st.session_state.step == 2:
 
         rows_to_add = []
 
-        for q, score in answers.items():
-            meta = question_map[q]
+        language_column = ensure_language_column(sheet)
+
+        for code, score in answers.items():
+            meta = QUESTION_META[code]
+            q = QUESTION_TEXTS[code]
 
             raw_score = score
             final_score = 6 - score if meta["direction"] == "neg" else score
 
-            rows_to_add.append([
+            storage_row = [
                 timestamp,
                 st.session_state.naam,
                 st.session_state.email,
@@ -1082,7 +943,13 @@ elif st.session_state.step == 2:
                 raw_score,
                 final_score,
                 q
-            ])
+            ]
+            if language_column <= len(storage_row) + 1:
+                storage_row.insert(language_column - 1, "nl")
+            else:
+                storage_row.extend([""] * (language_column - len(storage_row) - 1))
+                storage_row.append("nl")
+            rows_to_add.append(storage_row)
 
         sheet.append_rows(rows_to_add)
 
@@ -1095,25 +962,38 @@ elif st.session_state.step == 2:
 # STEP 3
 # ---------------------------
 elif st.session_state.step == 3:
+    components.html(
+        """<script>setTimeout(()=>{const el=window.parent.document.getElementById('top');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}},200);</script>""",
+        height=0,
+    )
 
-    if not st.session_state.email_sent:
-        report = st.session_state.report
+    report = st.session_state.report
+    strongest = max(report.items(), key=lambda item: item[1]["percentile"])
+    weakest = min(report.items(), key=lambda item: item[1]["percentile"])
 
-        html_report = build_email_report(
-            report,
-            st.session_state.naam
-        )
+    st.markdown('<span class="section-pill">Jouw systeemprofiel</span>', unsafe_allow_html=True)
+    st.title("Bedankt voor je deelname")
+    st.write("Je resultaten tonen welke factoren op individueel, team- en organisatieniveau jouw adaptief gedrag vandaag ondersteunen of belemmeren.")
 
-        send_email(
-            st.session_state.email,
-            "Jouw Rapport van de Adaptiviteit Systeemscan",
-            html_report
-        )
+    visual_column, summary_column = st.columns([1.2, .8], gap="large", vertical_alignment="top")
+    with visual_column:
+        st.subheader("Het overkoepelende model")
+        st.image("assets/Visual.png", use_container_width=True)
+    with summary_column:
+        st.subheader("Wat valt op?")
+        with st.container(border=True):
+            st.markdown(f"**Sterkste ondersteunende factor**  \n{strongest[1]['meta']['title']}: {strongest[1]['score']:.2f} / 5 · P{strongest[1]['percentile']:.0f}")
+            st.markdown(f"**Grootste ontwikkelkans**  \n{weakest[1]['meta']['title']}: {weakest[1]['score']:.2f} / 5 · P{weakest[1]['percentile']:.0f}")
+            st.info("Gebruik vooral het patroon over de drie niveaus als vertrekpunt: een lagere score is geen oordeel, maar wijst op een mogelijke hefboom voor meer adaptiviteit.")
 
-        st.session_state.email_sent = True
+    for group, dimensions in DIMENSION_GROUPS.items():
+        st.markdown(f"## {group}")
+        st.markdown(f'<div class="level-intro">{GROUP_INTROS[group]}</div>', unsafe_allow_html=True)
+        cards = [dimension_card_html(dimension, report[dimension]) for dimension in dimensions if dimension in report]
+        grid_class = "dimension-grid four" if len(cards) == 4 else "dimension-grid"
+        st.markdown(f'<div class="{grid_class}">{"".join(cards)}</div>', unsafe_allow_html=True)
 
-    st.success("Je rapport werd per e-mail verzonden! Check je spam folder als je hem niet ziet verschijnen.")
-    st.info("Je kan dit venster nu sluiten.")
+    st.caption("Pxx toont je positie ten opzichte van de externe normgroep. P76 betekent dat je hoger scoort dan ongeveer 76% van die normgroep; het is geen percentage juiste antwoorden.")
 
     # ---------------------------
     # RESET

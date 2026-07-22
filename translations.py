@@ -97,9 +97,9 @@ SELF_LEADERSHIP_TRANSLATIONS = {
 "SELF_COM_ADAP1":"I encourage creativity and new ideas in my team.","SELF_COM_ADAP2":"I ensure that we learn from mistakes and can grow together.","SELF_COM-O4":"I set a good example in how to deal with change.","SELF_COM_ADM1":"I set clear goals, measure progress and discuss it with my team.","SELF_COM_ADM2":"I provide structure and planning for my team’s work.","SELF_COM_ENAB1":"I create a setting in which team members can openly discuss different opinions.","SELF_COM_ENAB2":"I help team members connect so that they can learn from one another."}}
 
 DIMENSION_LABELS = {
-"nl":{"Capaciteit":"Capaciteit","Motivatie":"Motivatie","Job Karakteristieken":"Jobkarakteristieken","Teamadaptiviteit":"Teamadaptiviteit","Teamklimaat":"Teamklimaat","Richting & steun leidinggevende":"Leidinggevende","Organisatieadaptiviteit":"Organisatieadaptiviteit","Richting & steun van organisatie":"Richting & steun van organisatie","Organisatieklimaat":"Organisatieklimaat","HR":"HR-beleid"},
+"nl":{"Capaciteit":"Capaciteit","Motivatie":"Motivatie","Job Karakteristieken":"Jobkarakteristieken","Teamadaptiviteit":"Teamadaptiviteit","Teamklimaat":"Teamklimaat","Richting & steun leidinggevende":"Directe leidinggevende","Organisatieadaptiviteit":"Organisatieadaptiviteit","Richting & steun van organisatie":"Richting & steun van organisatie","Organisatieklimaat":"Organisatieklimaat","HR":"HR-beleid"},
 "fr":{"Capaciteit":"Capacité","Motivatie":"Motivation","Job Karakteristieken":"Caractéristiques du poste","Teamadaptiviteit":"Adaptabilité de l’équipe","Teamklimaat":"Climat d’équipe","Richting & steun leidinggevende":"Responsable direct","Organisatieadaptiviteit":"Adaptabilité organisationnelle","Richting & steun van organisatie":"Orientation & soutien de l’organisation","Organisatieklimaat":"Climat organisationnel","HR":"Politique RH"},
-"en":{"Capaciteit":"Capability","Motivatie":"Motivation","Job Karakteristieken":"Job characteristics","Teamadaptiviteit":"Team adaptability","Teamklimaat":"Team climate","Richting & steun leidinggevende":"Manager","Organisatieadaptiviteit":"Organisational adaptability","Richting & steun van organisatie":"Organisational direction & support","Organisatieklimaat":"Organisational climate","HR":"HR policy"}}
+"en":{"Capaciteit":"Capability","Motivatie":"Motivation","Job Karakteristieken":"Job characteristics","Teamadaptiviteit":"Team adaptability","Teamklimaat":"Team climate","Richting & steun leidinggevende":"Direct manager","Organisatieadaptiviteit":"Organisational adaptability","Richting & steun van organisatie":"Organisational direction & support","Organisatieklimaat":"Organisational climate","HR":"HR policy"}}
 
 SHORT_DESCRIPTIONS = {
 "nl":{"Capaciteit":"Vaardigheden, vertrouwen en inzicht om effectief te handelen in nieuwe of complexe situaties.","Motivatie":"Energie, bereidheid en volharding om met verandering om te gaan.","Job Karakteristieken":"Jobkenmerken die aanpassen, leren en flexibel handelen ondersteunen of bemoeilijken.","Teamadaptiviteit":"Hoe flexibel het team reageert, samen leert en zijn werkwijze bijstuurt.","Teamklimaat":"Open communicatie, vertrouwen, veiligheid en duidelijke samenwerking binnen het team.","Richting & steun leidinggevende":"Hoe de leidinggevende vernieuwing, structuur en verbinding ondersteunt.","Organisatieadaptiviteit":"Hoe effectief de organisatie signalen oppikt, leert en zich aanpast.","Richting & steun van organisatie":"Duidelijke richting, kennis, middelen en afstemming om verandering te ondersteunen.","Organisatieklimaat":"Ruimte voor experimenteren, innovatie, leren en het delen van ideeën.","HR":"Hoe HR-praktijken adaptiviteit ondersteunen via selectie, ontwikkeling, evaluatie en waardering."},
@@ -112,9 +112,9 @@ GROUP_TEXTS = {
 "en":{"Individuele basis":"Your personal foundation: what you can do, what motivates you and how your job is designed.","Team & leidinggevende":"The daily context in which collaboration, safety, learning and leadership support or hinder adaptability.","Organisatie":"The wider direction, systems, culture and support that enable sustainable adaptation and learning."}}
 
 GROUP_LABELS = {
-"nl":{"Individuele basis":"Individuele basis","Team & leidinggevende":"Team & leidinggevende","Organisatie":"Organisatie"},
-"fr":{"Individuele basis":"Base individuelle","Team & leidinggevende":"Équipe & responsable","Organisatie":"Organisation"},
-"en":{"Individuele basis":"Individual foundation","Team & leidinggevende":"Team & manager","Organisatie":"Organisation"}}
+"nl":{"Individuele basis":"Individuele basis","Team & leidinggevende":"Teamuitkomsten","Organisatie":"Organisatiefactoren"},
+"fr":{"Individuele basis":"Base individuelle","Team & leidinggevende":"Résultats de l’équipe","Organisatie":"Facteurs organisationnels"},
+"en":{"Individuele basis":"Individual foundation","Team & leidinggevende":"Team outcomes","Organisatie":"Organisational factors"}}
 
 SUBDIMENSION_LABELS = {
 "nl":{},

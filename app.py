@@ -5,6 +5,17 @@ import plotly.express as px
 import gspread
 import streamlit.components.v1 as components
 from google.oauth2.service_account import Credentials
+from translations import (
+    DIMENSION_LABELS,
+    GROUP_LABELS,
+    GROUP_TEXTS,
+    INTERPRETATIONS,
+    LANGUAGE_NAMES,
+    QUESTION_TRANSLATIONS,
+    SHORT_DESCRIPTIONS,
+    SUBDIMENSION_LABELS,
+    UI_TEXTS,
+)
 
 # ---------------------------
 # APP CONFIG
@@ -171,7 +182,8 @@ question_map = {
 
 # Stabiele technische sleutels: zichtbare teksten kunnen later vertaald worden
 # zonder scoring of historische gegevens te beïnvloeden.
-QUESTION_TEXTS = {meta["code"]: text for text, meta in question_map.items()}
+QUESTION_TEXTS = {"nl": {meta["code"]: text for text, meta in question_map.items()}}
+QUESTION_TEXTS.update(QUESTION_TRANSLATIONS)
 QUESTION_META = {meta["code"]: {**meta} for meta in question_map.values()}
 QUESTION_CODES = list(QUESTION_TEXTS)
 
@@ -670,8 +682,10 @@ def build_report(dim_scores, percentiles_df):
 
         level = interpret_score(percentile)
 
-        # juiste tekst kiezen
-        if dim in individual_dims:
+        interpretation_kind = "individual" if dim in individual_dims else "context"
+        if LANGUAGE in INTERPRETATIONS:
+            text = INTERPRETATIONS[LANGUAGE][interpretation_kind][level]
+        elif interpretation_kind == "individual":
             text = interpretation_text_individual[level]
         else:
             text = interpretation_text_context[level]
@@ -725,9 +739,6 @@ DIMENSION_ICONS = {
     "HR": '<svg viewBox="0 0 64 64"><circle cx="22" cy="22" r="7"/><circle cx="42" cy="22" r="7"/><circle cx="32" cy="15" r="7"/><path d="M8 52c1-10 6-16 14-16M56 52c-1-10-6-16-14-16M17 52c1-11 6-18 15-18s14 7 15 18"/></svg>',
 }
 
-PERCENTILE_LABELS = {"low": "Zeer laag", "below_avg": "Eerder laag", "average": "Rond het midden", "above_avg": "Eerder hoog", "high": "Zeer hoog"}
-
-
 def clean_text(text):
     return " ".join(str(text).split())
 
@@ -738,20 +749,27 @@ def dimension_card_html(dimension, data):
     subitems = data.get("subdimension", {})
     sub_html = ""
     if subitems:
-        rows = "".join(f'<li><b>{name}</b>: {float(item["score"]):.2f} / 5</li>' for name, item in subitems.items())
+        rows = "".join(f'<li><b>{SUBDIMENSION_LABELS[LANGUAGE].get(name, name)}</b>: {float(item["score"]):.2f} / 5</li>' for name, item in subitems.items())
         sub_html = f'<ul class="sub-list">{rows}</ul>'
+    level_label = T[f'level_{data["level"]}']
+    individual_dimensions = {"Capaciteit", "Motivatie", "Job Karakteristieken"}
+    interpretation_kind = "individual" if dimension in individual_dimensions else "context"
+    interpretation = (
+        INTERPRETATIONS[LANGUAGE][interpretation_kind][data["level"]]
+        if LANGUAGE in INTERPRETATIONS else data["text"]
+    )
     return (
         '<article class="dimension-card">'
         '<header class="dimension-header">'
         f'<span class="dimension-icon">{DIMENSION_ICONS[dimension]}</span>'
-        f'<div><h3>{data["meta"]["title"]}</h3><p>{DIMENSION_SHORT_DESCRIPTIONS[dimension]}</p></div>'
+        f'<div><h3>{DIMENSION_LABELS[LANGUAGE][dimension]}</h3><p>{SHORT_DESCRIPTIONS[LANGUAGE][dimension]}</p></div>'
         '</header>'
         '<div class="score-row">'
         f'<div class="score-track"><div class="score-fill" style="width:{score / 5 * 100:.1f}%"></div></div>'
         f'<span class="score-value">{score:.2f} / 5</span></div>'
-        f'<span class="percentile-badge"><b>Interpretatie</b> P{percentile:.0f} · {PERCENTILE_LABELS[data["level"]]}</span>'
+        f'<span class="percentile-badge"><b>{T["score_interpretation"]}</b> · {level_label} · {T["higher_than"].format(p=f"{percentile:.0f}")}</span>'
         f'{sub_html}'
-        f'<div class="interpretation-box"><b>Jouw interpretatie</b><p>{clean_text(data["text"])}</p></div>'
+        f'<div class="interpretation-box"><b>{T["your_interpretation"]}</b><p>{clean_text(interpretation)}</p></div>'
         '</article>'
     )
 
@@ -794,174 +812,166 @@ div[data-testid="stRadio"] label p { font-size:.82rem; }
 </style>
 """, unsafe_allow_html=True)
 
+requested_language = st.query_params.get("lang", "nl")
+if requested_language not in LANGUAGE_NAMES:
+    requested_language = "nl"
+if "language" not in st.session_state:
+    st.session_state.language = requested_language
+
+language_spacer, language_picker = st.columns([5, 1])
+with language_picker:
+    LANGUAGE = st.selectbox(
+        "Language · Taal · Langue",
+        options=list(LANGUAGE_NAMES),
+        format_func=LANGUAGE_NAMES.get,
+        key="language",
+        label_visibility="collapsed",
+    )
+if st.query_params.get("lang") != LANGUAGE:
+    st.query_params["lang"] = LANGUAGE
+T = UI_TEXTS[LANGUAGE]
+
 header_left, header_right = st.columns([5,1.35], vertical_alignment="center")
 with header_left:
-    st.markdown('<div class="app-header"><h1>Adaptiviteit Systeemscan</h1><p>Ontdek welke individuele, team- en organisatiefactoren jouw adaptief gedrag ondersteunen of belemmeren.</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="app-header"><h1>{T["title"]}</h1><p>{T["intro"]}</p></div>', unsafe_allow_html=True)
 with header_right:
     logo_left, logo_right = st.columns(2, vertical_alignment="center")
     with logo_left: st.image("assets/logo Coliberate.png", use_container_width=True)
     with logo_right: st.image("assets/logo KULtivating.webp", use_container_width=True)
 
-scale_labels = ["Helemaal oneens", "Oneens", "Neutraal", "Eens", "Helemaal eens"]
+scale_labels = T["scale"]
 
 # ---------------------------
-# STEP 1
+# STEP 1 - GEGEVENS
 # ---------------------------
 if st.session_state.step == 1:
-    st.markdown('<span class="section-pill">Stap 1 · Je gegevens</span>', unsafe_allow_html=True)
-    st.subheader("Vertel ons kort wie je bent")
-    st.write("Vul de systeemscan in en ontdek wat jij en je omgeving kunnen doen om adaptiever te worden.")
+    st.markdown(f'<span class="section-pill">{T["details_step"]}</span>', unsafe_allow_html=True)
+    st.subheader(T["details_title"])
+    st.write(T["details_intro"])
 
-    naam = st.text_input("Naam")
-    email = st.text_input("E-mailadres (optioneel)", help="We bewaren dit alleen zodat we je resultaat later eventueel kunnen bezorgen. Er wordt nu geen e-mail verstuurd.", placeholder="name@example.com")
-    functie = st.text_input("Functie")
-    organisatie = st.text_input("Organisatie")
+    naam = st.text_input(T["name"])
+    email = st.text_input(T["email"], help=T["email_help"], placeholder="name@example.com")
+    functie = st.text_input(T["role"])
+    organisatie = st.text_input(T["organisation"])
 
-    if st.button("Start vragenlijst"):
+    if st.button(T["start"]):
         st.session_state.naam = naam
         st.session_state.email = email
         st.session_state.functie = functie
         st.session_state.organisatie = organisatie
-
         st.session_state.step = 2
         st.rerun()
 
 # ---------------------------
-# STEP 2 (SINGLE PAGE VERSION)
+# STEP 2-4 - DRIE VRAGENLIJSTDELEN
 # ---------------------------
-elif st.session_state.step == 2:
-
-    # ---------------------------
-    # INIT
-    # ---------------------------
+elif st.session_state.step in (2, 3, 4):
+    part_index = st.session_state.step - 2
+    group_name = list(DIMENSION_GROUPS)[part_index]
+    dimensions = DIMENSION_GROUPS[group_name]
+    part_codes = [code for code in QUESTION_CODES if QUESTION_META[code]["dimension"] in dimensions]
     answers = st.session_state.answers
 
-    st.markdown('<span class="section-pill">Stap 2 · Systeemscan</span>', unsafe_allow_html=True)
-    st.subheader("Duid voor elke uitspraak aan in welke mate je ermee akkoord gaat")
+    part_title_keys = ["part_individual", "part_team", "part_organisation"]
+    st.markdown(
+        f'<span class="section-pill">{T["part"].format(current=part_index + 1)}</span>',
+        unsafe_allow_html=True,
+    )
+    st.subheader(T[part_title_keys[part_index]])
+    st.write(T["part_instruction"])
+    st.progress((part_index + 1) / 3)
 
-    # ---------------------------
-    # QUESTIONS (ALL IN ONE PAGE)
-    # ---------------------------
-    for code in QUESTION_CODES:
-        q = QUESTION_TEXTS[code]
+    for code in part_codes:
+        question = QUESTION_TEXTS[LANGUAGE][code]
         with st.container():
             col_q, col_a = st.columns([5, 7], gap="large")
-
             with col_q:
-                st.markdown(f"**{q}**")
-
+                st.markdown(f"**{question}**")
             with col_a:
                 selected = st.radio(
                     label="",
                     options=list(range(1, 6)),
-                    format_func=lambda value: scale_labels[value - 1],
+                    format_func=lambda value: T["scale"][value - 1],
                     horizontal=True,
                     key=f"question_{code}",
                     index=None,
-                    label_visibility="collapsed"
+                    label_visibility="collapsed",
                 )
-
                 if selected:
                     answers[code] = selected
-
         st.markdown("<hr style='margin:8px 0; opacity:0.6;'>", unsafe_allow_html=True)
 
-    # ---------------------------
-    # CHECK COMPLETENESS
-    # ---------------------------
-    missing = [code for code in QUESTION_CODES if code not in answers]
-
+    missing = [code for code in part_codes if code not in answers]
     if missing:
-        st.warning("Vul alle vragen in.")
+        st.warning(T["missing"])
     else:
-        st.success("Alle vragen ingevuld.")
+        st.success(T["complete"])
 
-    # ---------------------------
-    # SUBMIT
-    # ---------------------------
-    if st.button("Toon mijn resultaat", disabled=bool(missing)):
+    back_column, next_column = st.columns([1, 1])
+    with back_column:
+        if st.button(T["previous"], key=f"back_{part_index}"):
+            st.session_state.step -= 1
+            st.rerun()
 
-        percentiles_df = percentile_data
+    with next_column:
+        button_label = T["show_result"] if part_index == 2 else T["next"]
+        if st.button(button_label, disabled=bool(missing), key=f"next_{part_index}"):
+            if part_index < 2:
+                st.session_state.step += 1
+                st.rerun()
 
-        dim_scores = build_dimension_scores(answers)
-        sub_scores = {}
+            dim_scores = build_dimension_scores(answers)
+            sub_scores = {}
+            for code, score in answers.items():
+                meta = QUESTION_META[code]
+                sub = meta["subdimension"]
+                final_score = 6 - score if meta["direction"] == "neg" else score
+                if sub is not None:
+                    sub_scores.setdefault(sub, []).append(final_score)
+            sub_scores = {sub: round(sum(values) / len(values), 2) for sub, values in sub_scores.items()}
 
-        for code, score in answers.items():
-            meta = QUESTION_META[code]
-            sub = meta["subdimension"]
+            report = build_report(dim_scores, percentile_data)
+            for dimension in report:
+                report[dimension]["subdimension"] = {}
+                for sub, score in sub_scores.items():
+                    for meta in QUESTION_META.values():
+                        if meta["dimension"] == dimension and meta["subdimension"] == sub:
+                            report[dimension]["subdimension"][sub] = {
+                                "score": score,
+                                "description": subdimension_meta.get(sub, {}).get("description", ""),
+                            }
+                            break
+            st.session_state.report = report
 
-            final_score = 6 - score if meta["direction"] == "neg" else score
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            language_column = ensure_language_column(sheet)
+            rows_to_add = []
+            for code, score in answers.items():
+                meta = QUESTION_META[code]
+                raw_score = score
+                final_score = 6 - score if meta["direction"] == "neg" else score
+                storage_row = [
+                    timestamp, st.session_state.naam, st.session_state.email,
+                    st.session_state.functie, st.session_state.organisatie,
+                    meta["code"], meta["dimension"], meta["subdimension"],
+                    raw_score, final_score, QUESTION_TEXTS[LANGUAGE][code],
+                ]
+                if language_column <= len(storage_row) + 1:
+                    storage_row.insert(language_column - 1, LANGUAGE)
+                else:
+                    storage_row.extend([""] * (language_column - len(storage_row) - 1))
+                    storage_row.append(LANGUAGE)
+                rows_to_add.append(storage_row)
+            sheet.append_rows(rows_to_add)
 
-            if sub is not None:
-                sub_scores.setdefault(sub, []).append(final_score)
-
-        sub_scores = {
-            sub: round(sum(values) / len(values), 2)
-            for sub, values in sub_scores.items()
-        }
-
-        report = build_report(dim_scores, percentiles_df)
-
-        # subdimensies toevoegen aan report
-        for dim in report:
-            report[dim]["subdimension"] = {}
-
-            for sub, score in sub_scores.items():
-                # check of sub bij deze dimensie hoort
-                for meta in QUESTION_META.values():
-                    if meta["dimension"] == dim and meta["subdimension"] == sub:
-                        report[dim]["subdimension"][sub] = {
-                            "score": score,
-                            "description": subdimension_meta.get(sub, {}).get("description", "")
-                        }
-                        break
-
-        st.session_state.report = report
-
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        rows_to_add = []
-
-        language_column = ensure_language_column(sheet)
-
-        for code, score in answers.items():
-            meta = QUESTION_META[code]
-            q = QUESTION_TEXTS[code]
-
-            raw_score = score
-            final_score = 6 - score if meta["direction"] == "neg" else score
-
-            storage_row = [
-                timestamp,
-                st.session_state.naam,
-                st.session_state.email,
-                st.session_state.functie,
-                st.session_state.organisatie,
-                meta["code"],
-                meta["dimension"],
-                meta["subdimension"],
-                raw_score,
-                final_score,
-                q
-            ]
-            if language_column <= len(storage_row) + 1:
-                storage_row.insert(language_column - 1, "nl")
-            else:
-                storage_row.extend([""] * (language_column - len(storage_row) - 1))
-                storage_row.append("nl")
-            rows_to_add.append(storage_row)
-
-        sheet.append_rows(rows_to_add)
-
-        # reset + next step
-        st.session_state.step = 3
-        st.session_state.scroll_top = True
-        st.rerun()
+            st.session_state.response_language = LANGUAGE
+            st.session_state.step = 5
+            st.rerun()
 
 # ---------------------------
 # STEP 3
 # ---------------------------
-elif st.session_state.step == 3:
+elif st.session_state.step == 5:
     components.html(
         """<script>setTimeout(()=>{const el=window.parent.document.getElementById('top');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}},200);</script>""",
         height=0,
@@ -970,35 +980,48 @@ elif st.session_state.step == 3:
     report = st.session_state.report
     strongest = max(report.items(), key=lambda item: item[1]["percentile"])
     weakest = min(report.items(), key=lambda item: item[1]["percentile"])
+    strongest_percentile = f'{strongest[1]["percentile"]:.0f}'
+    weakest_percentile = f'{weakest[1]["percentile"]:.0f}'
+    strongest_level = T[f'level_{strongest[1]["level"]}']
+    weakest_level = T[f'level_{weakest[1]["level"]}']
 
-    st.markdown('<span class="section-pill">Jouw systeemprofiel</span>', unsafe_allow_html=True)
-    st.title("Bedankt voor je deelname")
-    st.write("Je resultaten tonen welke factoren op individueel, team- en organisatieniveau jouw adaptief gedrag vandaag ondersteunen of belemmeren.")
+    st.markdown(f'<span class="section-pill">{T["profile_pill"]}</span>', unsafe_allow_html=True)
+    st.title(T["thanks"])
+    st.write(T["result_intro"])
 
     visual_column, summary_column = st.columns([1.2, .8], gap="large", vertical_alignment="top")
     with visual_column:
-        st.subheader("Het overkoepelende model")
+        st.subheader(T["model"])
         st.image("assets/Visual.png", use_container_width=True)
     with summary_column:
-        st.subheader("Wat valt op?")
+        st.subheader(T["stands_out"])
         with st.container(border=True):
-            st.markdown(f"**Sterkste ondersteunende factor**  \n{strongest[1]['meta']['title']}: {strongest[1]['score']:.2f} / 5 · P{strongest[1]['percentile']:.0f}")
-            st.markdown(f"**Grootste ontwikkelkans**  \n{weakest[1]['meta']['title']}: {weakest[1]['score']:.2f} / 5 · P{weakest[1]['percentile']:.0f}")
-            st.info("Gebruik vooral het patroon over de drie niveaus als vertrekpunt: een lagere score is geen oordeel, maar wijst op een mogelijke hefboom voor meer adaptiviteit.")
+            st.markdown(
+                f"**{T['strongest']}**  \n"
+                f"{DIMENSION_LABELS[LANGUAGE][strongest[0]]}: {strongest[1]['score']:.2f} / 5  \n"
+                f"{T['higher_than'].format(p=strongest_percentile)} · {strongest_level}"
+            )
+            st.markdown(
+                f"**{T['development']}**  \n"
+                f"{DIMENSION_LABELS[LANGUAGE][weakest[0]]}: {weakest[1]['score']:.2f} / 5  \n"
+                f"{T['higher_than'].format(p=weakest_percentile)} · {weakest_level}  \n"
+                f"{T['lower_context']}"
+            )
+            st.info(T["summary_note"])
 
     for group, dimensions in DIMENSION_GROUPS.items():
-        st.markdown(f"## {group}")
-        st.markdown(f'<div class="level-intro">{GROUP_INTROS[group]}</div>', unsafe_allow_html=True)
+        st.markdown(f"## {GROUP_LABELS[LANGUAGE][group]}")
+        st.markdown(f'<div class="level-intro">{GROUP_TEXTS[LANGUAGE][group]}</div>', unsafe_allow_html=True)
         cards = [dimension_card_html(dimension, report[dimension]) for dimension in dimensions if dimension in report]
         grid_class = "dimension-grid four" if len(cards) == 4 else "dimension-grid"
         st.markdown(f'<div class="{grid_class}">{"".join(cards)}</div>', unsafe_allow_html=True)
 
-    st.caption("Pxx toont je positie ten opzichte van de externe normgroep. P76 betekent dat je hoger scoort dan ongeveer 76% van die normgroep; het is geen percentage juiste antwoorden.")
+    st.caption(T["percentile_guide"])
 
     # ---------------------------
     # RESET
     # ---------------------------
-    if st.button("Opnieuw invullen"):
+    if st.button(T["restart"]):
         st.session_state.step = 1
         st.session_state.answers = {}
         st.rerun()

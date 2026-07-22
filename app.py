@@ -846,7 +846,7 @@ h1,h2,h3 { color:var(--primary)!important; }
 .dimension-card { grid-column:span 2; min-height:100%; padding:1.05rem; border:1.5px solid var(--primary); border-radius:16px; background:white; box-shadow:0 8px 22px rgba(15,86,107,.07); display:flex; flex-direction:column; }
 .dimension-grid.two .dimension-card { grid-column:span 3; }
 .dimension-grid.four .dimension-card { grid-column:span 3; }
-.dimension-header { display:grid; grid-template-columns:48px 1fr; gap:.75rem; align-items:start; }
+.dimension-header { display:grid; grid-template-columns:48px 1fr; gap:.75rem; align-items:start; min-height:132px; }
 .dimension-icon { width:46px; height:46px; border-radius:50%; background:var(--primary); color:white; display:grid; place-items:center; }
 .dimension-icon svg { width:68%; height:68%; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
 .dimension-card h3 { margin:0 0 .4rem; font-size:1.05rem; line-height:1.2; }
@@ -855,7 +855,7 @@ h1,h2,h3 { color:var(--primary)!important; }
 .score-track { flex:1; height:9px; border-radius:999px; background:#e5f0f3; overflow:hidden; }
 .score-fill { height:100%; background:linear-gradient(90deg,var(--blue),var(--primary)); }
 .score-value { color:var(--primary); font-weight:800; white-space:nowrap; }
-.percentile-badge { display:flex; gap:.28rem .45rem; align-items:center; flex-wrap:wrap; width:100%; max-width:100%; padding:.48rem .65rem; margin-bottom:.7rem; border-radius:10px; background:#fff7eb; color:var(--primary); font-size:.78rem; line-height:1.35; white-space:normal; overflow-wrap:anywhere; }
+.percentile-badge { display:flex; gap:.28rem .45rem; align-content:flex-start; align-items:flex-start; flex-wrap:wrap; width:100%; max-width:100%; min-height:72px; padding:.48rem .65rem; margin-bottom:.7rem; border-radius:10px; background:#fff7eb; color:var(--primary); font-size:.78rem; line-height:1.35; white-space:normal; overflow-wrap:anywhere; }
 .interpretation-box { margin-top:auto; padding:.8rem; border-radius:10px; background:var(--light-blue); }
 .sub-list { margin:.65rem 0 .8rem; padding-left:1rem; color:var(--text); font-size:.82rem; }
 .sub-list li { margin:.28rem 0; }
@@ -863,7 +863,7 @@ div[data-testid="stRadio"] label p { font-size:.82rem; }
 @media (min-width:900px) { div[data-testid="stRadio"] div[role="radiogroup"] { flex-wrap:nowrap; gap:.45rem; } }
 .stButton>button { border:0; border-radius:999px; background:var(--primary); color:white; font-weight:700; padding-left:1.25rem; padding-right:1.25rem; }
 .stButton>button:hover { background:#0a4455; color:white; }
-@media(max-width:800px){ .block-container{padding:4.5rem 1rem 3rem}.dimension-grid,.dimension-grid.two,.dimension-grid.four{grid-template-columns:1fr}.dimension-card,.dimension-grid.two .dimension-card,.dimension-grid.four .dimension-card{grid-column:1}.app-header{margin-left:-1rem;border-radius:0 28px 28px 0}.app-header h1{font-size:1.6rem} }
+@media(max-width:800px){ .block-container{padding:4.5rem 1rem 3rem}.dimension-grid,.dimension-grid.two,.dimension-grid.four{grid-template-columns:1fr}.dimension-card,.dimension-grid.two .dimension-card,.dimension-grid.four .dimension-card{grid-column:1}.dimension-header{min-height:0}.percentile-badge{min-height:0}.app-header{margin-left:-1rem;border-radius:0 28px 28px 0}.app-header h1{font-size:1.6rem} }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1132,7 +1132,13 @@ elif st.session_state.step == 5:
 
     self_leadership_score = st.session_state.get("self_leadership_score")
     self_leadership_subscores = st.session_state.get("self_leadership_subscores", {})
-    for group, dimensions in OUTPUT_DIMENSION_GROUPS.items():
+    is_manager = st.session_state.get("is_manager", False)
+    for group, configured_dimensions in OUTPUT_DIMENSION_GROUPS.items():
+        dimensions = list(configured_dimensions)
+        if group == "Team & leidinggevende" and not is_manager:
+            dimensions.append("Richting & steun leidinggevende")
+        if group == "Organisatie" and not is_manager:
+            dimensions.remove("Richting & steun leidinggevende")
         st.markdown(f"## {GROUP_LABELS[LANGUAGE][group]}")
         st.markdown(f'<div class="level-intro">{GROUP_TEXTS[LANGUAGE][group]}</div>', unsafe_allow_html=True)
         cards = [dimension_card_html(dimension, report[dimension]) for dimension in dimensions if dimension in report]

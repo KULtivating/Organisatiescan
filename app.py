@@ -12,6 +12,7 @@ from translations import (
     INTERPRETATIONS,
     LANGUAGE_NAMES,
     QUESTION_TRANSLATIONS,
+    SELF_LEADERSHIP_TRANSLATIONS,
     SHORT_DESCRIPTIONS,
     SUBDIMENSION_LABELS,
     UI_TEXTS,
@@ -54,14 +55,25 @@ def connect_sheet():
 sheet = connect_sheet()
 
 
-def ensure_language_column(worksheet):
+def ensure_data_column(worksheet, column_name):
     headers = worksheet.row_values(1)
     normalized = [str(header).strip().lower() for header in headers]
-    if "taal" in normalized:
-        return normalized.index("taal") + 1
-    language_column = len(headers) + 1
-    worksheet.update_cell(1, language_column, "taal")
-    return language_column
+    normalized_name = column_name.strip().lower()
+    if normalized_name in normalized:
+        return normalized.index(normalized_name) + 1
+    column = len(headers) + 1
+    worksheet.update_cell(1, column, column_name)
+    return column
+
+
+def insert_column_values(storage_row, column_values):
+    for column, value in sorted(column_values.items()):
+        if column <= len(storage_row) + 1:
+            storage_row.insert(column - 1, value)
+        else:
+            storage_row.extend([""] * (column - len(storage_row) - 1))
+            storage_row.append(value)
+    return storage_row
 
 # ---------------------------
 # SESSION STATE
@@ -186,6 +198,19 @@ QUESTION_TEXTS = {"nl": {meta["code"]: text for text, meta in question_map.items
 QUESTION_TEXTS.update(QUESTION_TRANSLATIONS)
 QUESTION_META = {meta["code"]: {**meta} for meta in question_map.values()}
 QUESTION_CODES = list(QUESTION_META)
+
+LEADERSHIP_SOURCE_CODES = ["COM_ADAP1", "COM_ADAP2", "COM-O4", "COM_ADM1", "COM_ADM2", "COM_ENAB1", "COM_ENAB2"]
+SELF_LEADERSHIP_CODES = [f"SELF_{code}" for code in LEADERSHIP_SOURCE_CODES]
+for language in QUESTION_TEXTS:
+    QUESTION_TEXTS[language].update(SELF_LEADERSHIP_TRANSLATIONS[language])
+for source_code, self_code in zip(LEADERSHIP_SOURCE_CODES, SELF_LEADERSHIP_CODES):
+    source_meta = QUESTION_META[source_code]
+    QUESTION_META[self_code] = {
+        "dimension": "Eigen leiderschap",
+        "subdimension": source_meta["subdimension"],
+        "code": self_code,
+        "direction": "pos",
+    }
 
 # ---------------------------
 # CLUSTERING EN FEEDBACK 
@@ -800,7 +825,7 @@ h1,h2,h3 { color:var(--primary)!important; }
 .score-track { flex:1; height:9px; border-radius:999px; background:#e5f0f3; overflow:hidden; }
 .score-fill { height:100%; background:linear-gradient(90deg,var(--blue),var(--primary)); }
 .score-value { color:var(--primary); font-weight:800; white-space:nowrap; }
-.percentile-badge { display:inline-flex; gap:.45rem; align-items:center; width:max-content; padding:.38rem .65rem; margin-bottom:.7rem; border-radius:10px; background:#fff7eb; color:var(--primary); font-size:.82rem; }
+.percentile-badge { display:flex; gap:.28rem .45rem; align-items:center; flex-wrap:wrap; width:100%; max-width:100%; padding:.48rem .65rem; margin-bottom:.7rem; border-radius:10px; background:#fff7eb; color:var(--primary); font-size:.78rem; line-height:1.35; white-space:normal; overflow-wrap:anywhere; }
 .interpretation-box { margin-top:auto; padding:.8rem; border-radius:10px; background:var(--light-blue); }
 .sub-list { margin:.65rem 0 .8rem; padding-left:1rem; color:var(--text); font-size:.82rem; }
 .sub-list li { margin:.28rem 0; }
@@ -831,6 +856,17 @@ if st.query_params.get("lang") != LANGUAGE:
     st.query_params["lang"] = LANGUAGE
 T = UI_TEXTS[LANGUAGE]
 
+
+def request_scroll_to_top():
+    st.session_state.scroll_top = True
+
+
+if st.session_state.pop("scroll_top", False):
+    components.html(
+        """<script>setTimeout(()=>{const el=window.parent.document.getElementById('top');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}},150);</script>""",
+        height=0,
+    )
+
 header_left, header_right = st.columns([5,1.35], vertical_alignment="center")
 with header_left:
     st.markdown(f'<div class="app-header"><h1>{T["title"]}</h1><p>{T["intro"]}</p></div>', unsafe_allow_html=True)
@@ -853,13 +889,25 @@ if st.session_state.step == 1:
     email = st.text_input(T["email"], help=T["email_help"], placeholder="name@example.com")
     functie = st.text_input(T["role"])
     organisatie = st.text_input(T["organisation"])
+    manager_answer = st.radio(
+        T["manager_question"],
+        options=[True, False],
+        format_func=lambda value: T["yes"] if value else T["no"],
+        horizontal=True,
+        index=None,
+        key="manager_answer",
+    )
+    if manager_answer is None:
+        st.caption(T["manager_required"])
 
-    if st.button(T["start"]):
+    if st.button(T["start"], disabled=manager_answer is None):
         st.session_state.naam = naam
         st.session_state.email = email
         st.session_state.functie = functie
         st.session_state.organisatie = organisatie
+        st.session_state.is_manager = manager_answer
         st.session_state.step = 2
+        request_scroll_to_top()
         st.rerun()
 
 # ---------------------------
@@ -870,6 +918,13 @@ elif st.session_state.step in (2, 3, 4):
     group_name = list(DIMENSION_GROUPS)[part_index]
     dimensions = DIMENSION_GROUPS[group_name]
     part_codes = [code for code in QUESTION_CODES if QUESTION_META[code]["dimension"] in dimensions]
+    if part_index == 1:
+        team_context_codes = [code for code in part_codes if code not in LEADERSHIP_SOURCE_CODES]
+        own_manager_codes = [code for code in part_codes if code in LEADERSHIP_SOURCE_CODES]
+        part_codes = team_context_codes
+        if st.session_state.get("is_manager", False):
+            part_codes += SELF_LEADERSHIP_CODES
+        part_codes += own_manager_codes
     answers = st.session_state.answers
 
     part_title_keys = ["part_individual", "part_team", "part_organisation"]
@@ -881,7 +936,18 @@ elif st.session_state.step in (2, 3, 4):
     st.write(T["part_instruction"])
     st.progress((part_index + 1) / 3)
 
+    self_heading_shown = False
+    own_manager_heading_shown = False
     for code in part_codes:
+        if code in SELF_LEADERSHIP_CODES and not self_heading_shown:
+            st.markdown(f"### {T['self_leadership_title']}")
+            st.info(T["self_leadership_intro"])
+            self_heading_shown = True
+        if code in LEADERSHIP_SOURCE_CODES and not own_manager_heading_shown:
+            st.markdown(f"### {T['own_manager_title']}")
+            if st.session_state.get("is_manager", False):
+                st.info(T["own_manager_intro"])
+            own_manager_heading_shown = True
         question = QUESTION_TEXTS[LANGUAGE][code]
         with st.container():
             col_q, col_a = st.columns([5, 7], gap="large")
@@ -911,6 +977,7 @@ elif st.session_state.step in (2, 3, 4):
     with back_column:
         if st.button(T["previous"], key=f"back_{part_index}"):
             st.session_state.step -= 1
+            request_scroll_to_top()
             st.rerun()
 
     with next_column:
@@ -918,11 +985,13 @@ elif st.session_state.step in (2, 3, 4):
         if st.button(button_label, disabled=bool(missing), key=f"next_{part_index}"):
             if part_index < 2:
                 st.session_state.step += 1
+                request_scroll_to_top()
                 st.rerun()
 
-            dim_scores = build_dimension_scores(answers)
+            standard_answers = {code: score for code, score in answers.items() if code in QUESTION_CODES}
+            dim_scores = build_dimension_scores(standard_answers)
             sub_scores = {}
-            for code, score in answers.items():
+            for code, score in standard_answers.items():
                 meta = QUESTION_META[code]
                 sub = meta["subdimension"]
                 final_score = 6 - score if meta["direction"] == "neg" else score
@@ -942,9 +1011,14 @@ elif st.session_state.step in (2, 3, 4):
                             }
                             break
             st.session_state.report = report
+            self_scores = [answers[code] for code in SELF_LEADERSHIP_CODES if code in answers]
+            st.session_state.self_leadership_score = (
+                round(sum(self_scores) / len(self_scores), 2) if self_scores else None
+            )
 
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            language_column = ensure_language_column(sheet)
+            language_column = ensure_data_column(sheet, "taal")
+            manager_column = ensure_data_column(sheet, "leidinggevende")
             rows_to_add = []
             for code, score in answers.items():
                 meta = QUESTION_META[code]
@@ -956,27 +1030,24 @@ elif st.session_state.step in (2, 3, 4):
                     meta["code"], meta["dimension"], meta["subdimension"],
                     raw_score, final_score, QUESTION_TEXTS[LANGUAGE][code],
                 ]
-                if language_column <= len(storage_row) + 1:
-                    storage_row.insert(language_column - 1, LANGUAGE)
-                else:
-                    storage_row.extend([""] * (language_column - len(storage_row) - 1))
-                    storage_row.append(LANGUAGE)
-                rows_to_add.append(storage_row)
+                rows_to_add.append(insert_column_values(
+                    storage_row,
+                    {
+                        language_column: LANGUAGE,
+                        manager_column: "ja" if st.session_state.get("is_manager", False) else "nee",
+                    },
+                ))
             sheet.append_rows(rows_to_add)
 
             st.session_state.response_language = LANGUAGE
             st.session_state.step = 5
+            request_scroll_to_top()
             st.rerun()
 
 # ---------------------------
 # STEP 3
 # ---------------------------
 elif st.session_state.step == 5:
-    components.html(
-        """<script>setTimeout(()=>{const el=window.parent.document.getElementById('top');if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}},200);</script>""",
-        height=0,
-    )
-
     report = st.session_state.report
     strongest = max(report.items(), key=lambda item: item[1]["percentile"])
     weakest = min(report.items(), key=lambda item: item[1]["percentile"])
@@ -1009,6 +1080,21 @@ elif st.session_state.step == 5:
             )
             st.info(T["summary_note"])
 
+    self_leadership_score = st.session_state.get("self_leadership_score")
+    if self_leadership_score is not None:
+        st.markdown(f"## {T['self_leadership_result']}")
+        self_card = (
+            '<div class="dimension-grid"><article class="dimension-card">'
+            '<header class="dimension-header">'
+            f'<span class="dimension-icon">{DIMENSION_ICONS["Richting & steun leidinggevende"]}</span>'
+            f'<div><h3>{T["self_leadership_result"]}</h3><p>{T["self_leadership_result_intro"]}</p></div>'
+            '</header><div class="score-row">'
+            f'<div class="score-track"><div class="score-fill" style="width:{self_leadership_score / 5 * 100:.1f}%"></div></div>'
+            f'<span class="score-value">{self_leadership_score:.2f} / 5</span>'
+            '</div></article></div>'
+        )
+        st.markdown(self_card, unsafe_allow_html=True)
+
     for group, dimensions in DIMENSION_GROUPS.items():
         st.markdown(f"## {GROUP_LABELS[LANGUAGE][group]}")
         st.markdown(f'<div class="level-intro">{GROUP_TEXTS[LANGUAGE][group]}</div>', unsafe_allow_html=True)
@@ -1024,4 +1110,5 @@ elif st.session_state.step == 5:
     if st.button(T["restart"]):
         st.session_state.step = 1
         st.session_state.answers = {}
+        request_scroll_to_top()
         st.rerun()

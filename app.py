@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime
+from pathlib import Path
 import pandas as pd
 import plotly.express as px
 import gspread
@@ -728,8 +729,8 @@ def build_report(dim_scores, percentiles_df):
 
 DIMENSION_GROUPS = {
     "Individuele basis": ["Capaciteit", "Motivatie", "Job Karakteristieken"],
-    "Team & leidinggevende": ["Teamadaptiviteit", "Teamklimaat", "Richting & steun leidinggevende"],
-    "Organisatie": ["Organisatieadaptiviteit", "Richting & steun van organisatie", "Organisatieklimaat", "HR"],
+    "Team & leidinggevende": ["Teamadaptiviteit", "Teamklimaat"],
+    "Organisatie": ["Richting & steun leidinggevende", "Organisatieadaptiviteit", "Richting & steun van organisatie", "Organisatieklimaat", "HR"],
 }
 
 GROUP_INTROS = {
@@ -798,6 +799,26 @@ def dimension_card_html(dimension, data):
         '</article>'
     )
 
+
+def self_leadership_card_html(score, sub_scores):
+    rows = "".join(
+        f'<li><b>{SUBDIMENSION_LABELS[LANGUAGE].get(name, name)}</b>: {value:.2f} / 5</li>'
+        for name, value in sub_scores.items()
+    )
+    sub_html = f'<ul class="sub-list">{rows}</ul>' if rows else ""
+    return (
+        '<article class="dimension-card">'
+        '<header class="dimension-header">'
+        f'<span class="dimension-icon">{DIMENSION_ICONS["Richting & steun leidinggevende"]}</span>'
+        f'<div><h3>{T["self_leadership_result"]}</h3><p>{T["self_leadership_result_intro"]}</p></div>'
+        '</header>'
+        '<div class="score-row">'
+        f'<div class="score-track"><div class="score-fill" style="width:{score / 5 * 100:.1f}%"></div></div>'
+        f'<span class="score-value">{score:.2f} / 5</span></div>'
+        f'{sub_html}'
+        '</article>'
+    )
+
 st.markdown("""
 <style>
 :root { --primary:#0f566b; --blue:#2aa5ca; --yellow:#ffc271; --light-blue:#eef8fb; --text:#17313b; --muted:#667985; --line:#cfe1e7; }
@@ -815,6 +836,7 @@ h1,h2,h3 { color:var(--primary)!important; }
 .level-intro { padding:1rem 1.15rem; margin:.8rem 0 1rem; border-left:5px solid var(--primary); border-radius:14px; background:var(--light-blue); }
 .dimension-grid { display:grid; gap:1rem; grid-template-columns:repeat(6,minmax(0,1fr)); align-items:stretch; }
 .dimension-card { grid-column:span 2; min-height:100%; padding:1.05rem; border:1.5px solid var(--primary); border-radius:16px; background:white; box-shadow:0 8px 22px rgba(15,86,107,.07); display:flex; flex-direction:column; }
+.dimension-grid.two .dimension-card { grid-column:span 3; }
 .dimension-grid.four .dimension-card { grid-column:span 3; }
 .dimension-header { display:grid; grid-template-columns:48px 1fr; gap:.75rem; align-items:start; }
 .dimension-icon { width:46px; height:46px; border-radius:50%; background:var(--primary); color:white; display:grid; place-items:center; }
@@ -833,7 +855,7 @@ div[data-testid="stRadio"] label p { font-size:.82rem; }
 @media (min-width:900px) { div[data-testid="stRadio"] div[role="radiogroup"] { flex-wrap:nowrap; gap:.45rem; } }
 .stButton>button { border:0; border-radius:999px; background:var(--primary); color:white; font-weight:700; padding-left:1.25rem; padding-right:1.25rem; }
 .stButton>button:hover { background:#0a4455; color:white; }
-@media(max-width:800px){ .block-container{padding:4.5rem 1rem 3rem}.dimension-grid,.dimension-grid.four{grid-template-columns:1fr}.dimension-card,.dimension-grid.four .dimension-card{grid-column:1}.app-header{margin-left:-1rem;border-radius:0 28px 28px 0}.app-header h1{font-size:1.6rem} }
+@media(max-width:800px){ .block-container{padding:4.5rem 1rem 3rem}.dimension-grid,.dimension-grid.two,.dimension-grid.four{grid-template-columns:1fr}.dimension-card,.dimension-grid.two .dimension-card,.dimension-grid.four .dimension-card{grid-column:1}.app-header{margin-left:-1rem;border-radius:0 28px 28px 0}.app-header h1{font-size:1.6rem} }
 </style>
 """, unsafe_allow_html=True)
 
@@ -934,6 +956,8 @@ elif st.session_state.step in (2, 3, 4):
     )
     st.subheader(T[part_title_keys[part_index]])
     st.write(T["part_instruction"])
+    if part_index == 1 and st.session_state.get("is_manager", False):
+        st.info(T["self_leadership_intro"])
     st.progress((part_index + 1) / 3)
 
     self_heading_shown = False
@@ -941,7 +965,6 @@ elif st.session_state.step in (2, 3, 4):
     for code in part_codes:
         if code in SELF_LEADERSHIP_CODES and not self_heading_shown:
             st.markdown(f"### {T['self_leadership_title']}")
-            st.info(T["self_leadership_intro"])
             self_heading_shown = True
         if code in LEADERSHIP_SOURCE_CODES and not own_manager_heading_shown:
             st.markdown(f"### {T['own_manager_title']}")
@@ -1015,6 +1038,15 @@ elif st.session_state.step in (2, 3, 4):
             st.session_state.self_leadership_score = (
                 round(sum(self_scores) / len(self_scores), 2) if self_scores else None
             )
+            self_sub_scores = {}
+            for code in SELF_LEADERSHIP_CODES:
+                if code in answers:
+                    sub = QUESTION_META[code]["subdimension"]
+                    self_sub_scores.setdefault(sub, []).append(answers[code])
+            st.session_state.self_leadership_subscores = {
+                sub: round(sum(values) / len(values), 2)
+                for sub, values in self_sub_scores.items()
+            }
 
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             language_column = ensure_data_column(sheet, "taal")
@@ -1060,10 +1092,20 @@ elif st.session_state.step == 5:
     st.title(T["thanks"])
     st.write(T["result_intro"])
 
-    visual_column, summary_column = st.columns([1.2, .8], gap="large", vertical_alignment="top")
+    assets_dir = Path(__file__).resolve().parent / "assets"
+    visual_paths = {
+        "nl": assets_dir / "Visual.png",
+        "fr": assets_dir / "visual_fr.png",
+        "en": assets_dir / "visual_en.png",
+    }
+    visual_path = visual_paths[LANGUAGE]
+    if not visual_path.exists():
+        visual_path = visual_paths["nl"]
+
+    visual_column, summary_column = st.columns([1.45, .75], gap="large", vertical_alignment="top")
     with visual_column:
         st.subheader(T["model"])
-        st.image("assets/Visual.png", use_container_width=True)
+        st.image(str(visual_path), use_container_width=True)
     with summary_column:
         st.subheader(T["stands_out"])
         with st.container(border=True):
@@ -1081,25 +1123,18 @@ elif st.session_state.step == 5:
             st.info(T["summary_note"])
 
     self_leadership_score = st.session_state.get("self_leadership_score")
-    if self_leadership_score is not None:
-        st.markdown(f"## {T['self_leadership_result']}")
-        self_card = (
-            '<div class="dimension-grid"><article class="dimension-card">'
-            '<header class="dimension-header">'
-            f'<span class="dimension-icon">{DIMENSION_ICONS["Richting & steun leidinggevende"]}</span>'
-            f'<div><h3>{T["self_leadership_result"]}</h3><p>{T["self_leadership_result_intro"]}</p></div>'
-            '</header><div class="score-row">'
-            f'<div class="score-track"><div class="score-fill" style="width:{self_leadership_score / 5 * 100:.1f}%"></div></div>'
-            f'<span class="score-value">{self_leadership_score:.2f} / 5</span>'
-            '</div></article></div>'
-        )
-        st.markdown(self_card, unsafe_allow_html=True)
-
+    self_leadership_subscores = st.session_state.get("self_leadership_subscores", {})
     for group, dimensions in DIMENSION_GROUPS.items():
         st.markdown(f"## {GROUP_LABELS[LANGUAGE][group]}")
         st.markdown(f'<div class="level-intro">{GROUP_TEXTS[LANGUAGE][group]}</div>', unsafe_allow_html=True)
         cards = [dimension_card_html(dimension, report[dimension]) for dimension in dimensions if dimension in report]
-        grid_class = "dimension-grid four" if len(cards) == 4 else "dimension-grid"
+        if group == "Team & leidinggevende" and self_leadership_score is not None:
+            cards.append(self_leadership_card_html(self_leadership_score, self_leadership_subscores))
+        grid_class = (
+            "dimension-grid two" if len(cards) == 2
+            else "dimension-grid four" if len(cards) == 4
+            else "dimension-grid"
+        )
         st.markdown(f'<div class="{grid_class}">{"".join(cards)}</div>', unsafe_allow_html=True)
 
     st.caption(T["percentile_guide"])

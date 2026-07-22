@@ -727,7 +727,13 @@ def build_report(dim_scores, percentiles_df):
     return report
 
 
-DIMENSION_GROUPS = {
+SURVEY_DIMENSION_GROUPS = {
+    "Individuele basis": ["Capaciteit", "Motivatie", "Job Karakteristieken"],
+    "Team & leidinggevende": ["Teamadaptiviteit", "Teamklimaat", "Richting & steun leidinggevende"],
+    "Organisatie": ["Organisatieadaptiviteit", "Richting & steun van organisatie", "Organisatieklimaat", "HR"],
+}
+
+OUTPUT_DIMENSION_GROUPS = {
     "Individuele basis": ["Capaciteit", "Motivatie", "Job Karakteristieken"],
     "Team & leidinggevende": ["Teamadaptiviteit", "Teamklimaat"],
     "Organisatie": ["Richting & steun leidinggevende", "Organisatieadaptiviteit", "Richting & steun van organisatie", "Organisatieklimaat", "HR"],
@@ -815,7 +821,9 @@ def self_leadership_card_html(score, sub_scores):
         '<div class="score-row">'
         f'<div class="score-track"><div class="score-fill" style="width:{score / 5 * 100:.1f}%"></div></div>'
         f'<span class="score-value">{score:.2f} / 5</span></div>'
+        f'<span class="percentile-badge"><b>{T["score_interpretation"]}</b> · {T["self_benchmark_unavailable"]}</span>'
         f'{sub_html}'
+        f'<div class="interpretation-box"><b>{T["self_recommendation"]}</b><p>{T["self_recommendation_text"]}</p></div>'
         '</article>'
     )
 
@@ -937,8 +945,8 @@ if st.session_state.step == 1:
 # ---------------------------
 elif st.session_state.step in (2, 3, 4):
     part_index = st.session_state.step - 2
-    group_name = list(DIMENSION_GROUPS)[part_index]
-    dimensions = DIMENSION_GROUPS[group_name]
+    group_name = list(SURVEY_DIMENSION_GROUPS)[part_index]
+    dimensions = SURVEY_DIMENSION_GROUPS[group_name]
     part_codes = [code for code in QUESTION_CODES if QUESTION_META[code]["dimension"] in dimensions]
     if part_index == 1:
         team_context_codes = [code for code in part_codes if code not in LEADERSHIP_SOURCE_CODES]
@@ -1124,7 +1132,7 @@ elif st.session_state.step == 5:
 
     self_leadership_score = st.session_state.get("self_leadership_score")
     self_leadership_subscores = st.session_state.get("self_leadership_subscores", {})
-    for group, dimensions in DIMENSION_GROUPS.items():
+    for group, dimensions in OUTPUT_DIMENSION_GROUPS.items():
         st.markdown(f"## {GROUP_LABELS[LANGUAGE][group]}")
         st.markdown(f'<div class="level-intro">{GROUP_TEXTS[LANGUAGE][group]}</div>', unsafe_allow_html=True)
         cards = [dimension_card_html(dimension, report[dimension]) for dimension in dimensions if dimension in report]

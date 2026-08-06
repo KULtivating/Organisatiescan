@@ -21,7 +21,14 @@ UI_TEXTS = {
         "summary_note": "Gebruik vooral het patroon over de drie niveaus als vertrekpunt: een lagere score is geen oordeel, maar wijst op een mogelijke hefboom voor meer adaptiviteit.",
         "score_interpretation": "Externe vergelijking", "your_interpretation": "Jouw interpretatie", "restart": "Opnieuw invullen",
         "percentile_guide": "De vergelijking toont hoeveel procent van de externe referentiegroep lager scoort. ‘Hoger dan ongeveer 76%’ is dus geen percentage juiste antwoorden.",
-        "level_low": "Zeer laag", "level_below_avg": "Eerder laag", "level_average": "Rond het midden", "level_above_avg": "Eerder hoog", "level_high": "Zeer hoog",
+        "percentile": {
+            "unavailable": "Niet beschikbaar",
+            "very_low": "Zeer laag",
+            "rather_low": "Eerder laag",
+            "middle": "Rond het midden",
+            "rather_high": "Eerder hoog",
+            "very_high": "Zeer hoog",
+        },
     },
     "fr": {
         "title": "Scan systémique de l’adaptabilité", "intro": "Découvrez quels facteurs individuels, collectifs et organisationnels soutiennent ou freinent votre comportement adaptatif.",
@@ -41,7 +48,14 @@ UI_TEXTS = {
         "summary_note": "Utilisez surtout le profil à travers les trois niveaux comme point de départ : un score plus faible n’est pas un jugement, mais indique un levier potentiel d’adaptabilité.",
         "score_interpretation": "Comparaison externe", "your_interpretation": "Votre interprétation", "restart": "Recommencer",
         "percentile_guide": "La comparaison indique le pourcentage du groupe de référence externe qui obtient un score inférieur. « Supérieur à environ 76 % » n’est donc pas un pourcentage de bonnes réponses.",
-        "level_low": "Très faible", "level_below_avg": "Plutôt faible", "level_average": "Dans la moyenne", "level_above_avg": "Plutôt élevé", "level_high": "Très élevé",
+        "percentile": {
+            "unavailable": "Non disponible",
+            "very_low": "Très faible",
+            "rather_low": "Plutôt faible",
+            "middle": "Autour de la moyenne",
+            "rather_high": "Plutôt élevé",
+            "very_high": "Très élevé",
+        },
     },
     "en": {
         "title": "Adaptability System Scan", "intro": "Discover which individual, team and organisational factors support or hinder your adaptive behaviour.",
@@ -61,7 +75,14 @@ UI_TEXTS = {
         "summary_note": "Use the pattern across the three levels as your starting point: a lower score is not a judgement, but indicates a potential lever for greater adaptability.",
         "score_interpretation": "External comparison", "your_interpretation": "Your interpretation", "restart": "Start again",
         "percentile_guide": "The comparison shows what percentage of the external reference group scored lower. ‘Higher than approximately 76%’ is therefore not a percentage of correct answers.",
-        "level_low": "Very low", "level_below_avg": "Rather low", "level_average": "Around the middle", "level_above_avg": "Rather high", "level_high": "Very high",
+        "percentile": {
+            "unavailable": "Not available",
+            "very_low": "Very low",
+            "rather_low": "Rather low",
+            "middle": "Around the middle",
+            "rather_high": "Rather high",
+            "very_high": "Very high",
+        },
     },
 }
 
@@ -120,10 +141,63 @@ GROUP_LABELS = {
 "en":{"Individuele basis":"Individual foundation","Team & leidinggevende":"Team outcomes","Organisatie":"Organisational factors"}}
 
 SUBDIMENSION_LABELS = {
-"nl":{},
+"nl":{"Perceived Behavioral Control":"Ervaren gedragscontrole","Vaardigheid":"Vaardigheid","Ervaren belang":"Ervaren belang","Intrinsieke motivatie":"Intrinsieke motivatie","Betrokkenheid":"Betrokkenheid","Volharding":"Volharding","Job onzekerheid":"Jobonzekerheid","Rolduidelijkheid":"Rolduidelijkheid","Taakcomplexiteit & betekenis":"Taakcomplexiteit & betekenis","Autonomie":"Autonomie","Afhankelijkheid":"Afhankelijkheid","Nieuwigheden stimuleren":"Nieuwigheden stimuleren","Structuur aanbrengen":"Structuur aanbrengen","Verbinding maken":"Verbinding maken","Topmanagement steun":"Steun van het topmanagement","Kennis":"Kennis","Middelen":"Middelen","Alignment":"Afstemming"},
 "fr":{"Perceived Behavioral Control":"Contrôle comportemental perçu","Vaardigheid":"Compétences","Ervaren belang":"Importance perçue","Intrinsieke motivatie":"Motivation intrinsèque","Betrokkenheid":"Engagement","Volharding":"Persévérance","Job onzekerheid":"Insécurité d’emploi","Rolduidelijkheid":"Clarté du rôle","Taakcomplexiteit & betekenis":"Complexité & sens des tâches","Autonomie":"Autonomie","Afhankelijkheid":"Interdépendance","Nieuwigheden stimuleren":"Stimuler l’innovation","Structuur aanbrengen":"Apporter de la structure","Verbinding maken":"Créer des liens","Topmanagement steun":"Soutien de la direction","Kennis":"Connaissances","Middelen":"Ressources","Alignment":"Alignement"},
 "en":{"Perceived Behavioral Control":"Perceived behavioural control","Vaardigheid":"Skills","Ervaren belang":"Perceived importance","Intrinsieke motivatie":"Intrinsic motivation","Betrokkenheid":"Commitment","Volharding":"Persistence","Job onzekerheid":"Job insecurity","Rolduidelijkheid":"Role clarity","Taakcomplexiteit & betekenis":"Task complexity & meaning","Autonomie":"Autonomy","Afhankelijkheid":"Interdependence","Nieuwigheden stimuleren":"Encouraging innovation","Structuur aanbrengen":"Providing structure","Verbinding maken":"Building connection","Topmanagement steun":"Top-management support","Kennis":"Knowledge","Middelen":"Resources","Alignment":"Alignment"}}
 
 INTERPRETATIONS = {
-"fr":{"individual":{"low":"Cette caractéristique est actuellement moins présente et peut compliquer l’adaptation aux nouvelles situations.","below_avg":"Cette caractéristique est un peu moins présente que dans le groupe de référence et offre une marge de développement.","average":"Cette caractéristique constitue une base comparable à celle de la plupart des personnes du groupe de référence.","above_avg":"Cette caractéristique soutient relativement bien votre capacité à faire face au changement.","high":"Cette caractéristique constitue clairement un point fort de votre adaptabilité au travail."},"context":{"low":"Vous vivez ce contexte comme nettement moins soutenant que la plupart des personnes du groupe de référence.","below_avg":"Vous vivez ce contexte comme un peu moins soutenant ; certaines conditions favorables semblent moins présentes.","average":"Votre environnement offre un niveau de soutien comparable à celui du groupe de référence.","above_avg":"Vous vivez ce contexte comme relativement soutenant pour l’apprentissage et le changement.","high":"Vous vivez ce contexte comme très soutenant pour l’adaptabilité, l’apprentissage et le changement."}},
-"en":{"individual":{"low":"This characteristic is currently less present and may make it harder to adapt to new situations.","below_avg":"This characteristic is somewhat less present than in the reference group and offers room for development.","average":"This characteristic provides a foundation similar to that of most people in the reference group.","above_avg":"This characteristic supports your ability to deal with change relatively well.","high":"This characteristic is clearly a strength in your adaptability at work."},"context":{"low":"You experience this context as considerably less supportive than most people in the reference group.","below_avg":"You experience this context as somewhat less supportive; some enabling conditions appear less present.","average":"Your environment provides a level of support similar to that of the reference group.","above_avg":"You experience this context as relatively supportive of learning and change.","high":"You experience this context as highly supportive of adaptability, learning and change."}}}
+    "nl": {
+        "individual": {
+            "unavailable": "Voor deze dimensie zijn momenteel geen externe benchmarkgegevens beschikbaar.",
+            "very_low": "Deze eigenschap is momenteel minder sterk aanwezig en kan het moeilijker maken om je aan nieuwe situaties aan te passen.",
+            "rather_low": "Deze eigenschap is iets minder sterk aanwezig dan in de referentiegroep en biedt ruimte voor ontwikkeling.",
+            "middle": "Deze eigenschap vormt een basis die vergelijkbaar is met die van de meeste mensen in de referentiegroep.",
+            "rather_high": "Deze eigenschap ondersteunt je vermogen om met verandering om te gaan relatief goed.",
+            "very_high": "Deze eigenschap vormt duidelijk een sterkte in jouw adaptiviteit op het werk.",
+        },
+        "context": {
+            "unavailable": "Voor deze dimensie zijn momenteel geen externe benchmarkgegevens beschikbaar.",
+            "very_low": "Je ervaart deze context als duidelijk minder ondersteunend dan de meeste mensen in de referentiegroep.",
+            "rather_low": "Je ervaart deze context als iets minder ondersteunend; bepaalde bevorderende voorwaarden lijken minder aanwezig.",
+            "middle": "Je omgeving biedt een ondersteuningsniveau dat vergelijkbaar is met dat van de referentiegroep.",
+            "rather_high": "Je ervaart deze context als relatief ondersteunend voor leren en verandering.",
+            "very_high": "Je ervaart deze context als sterk ondersteunend voor adaptiviteit, leren en verandering.",
+        },
+    },
+    "fr": {
+        "individual": {
+            "unavailable": "Aucune donnée de référence externe n’est actuellement disponible pour cette dimension.",
+            "very_low": "Cette caractéristique est actuellement moins présente et peut compliquer l’adaptation aux nouvelles situations.",
+            "rather_low": "Cette caractéristique est un peu moins présente que dans le groupe de référence et offre une marge de développement.",
+            "middle": "Cette caractéristique constitue une base comparable à celle de la plupart des personnes du groupe de référence.",
+            "rather_high": "Cette caractéristique soutient relativement bien votre capacité à faire face au changement.",
+            "very_high": "Cette caractéristique constitue clairement un point fort de votre adaptabilité au travail.",
+        },
+        "context": {
+            "unavailable": "Aucune donnée de référence externe n’est actuellement disponible pour cette dimension.",
+            "very_low": "Vous vivez ce contexte comme nettement moins soutenant que la plupart des personnes du groupe de référence.",
+            "rather_low": "Vous vivez ce contexte comme un peu moins soutenant ; certaines conditions favorables semblent moins présentes.",
+            "middle": "Votre environnement offre un niveau de soutien comparable à celui du groupe de référence.",
+            "rather_high": "Vous vivez ce contexte comme relativement soutenant pour l’apprentissage et le changement.",
+            "very_high": "Vous vivez ce contexte comme très soutenant pour l’adaptabilité, l’apprentissage et le changement.",
+        },
+    },
+    "en": {
+        "individual": {
+            "unavailable": "External benchmark data is currently unavailable for this dimension.",
+            "very_low": "This characteristic is currently less present and may make it harder to adapt to new situations.",
+            "rather_low": "This characteristic is somewhat less present than in the reference group and offers room for development.",
+            "middle": "This characteristic provides a foundation similar to that of most people in the reference group.",
+            "rather_high": "This characteristic supports your ability to deal with change relatively well.",
+            "very_high": "This characteristic is clearly a strength in your adaptability at work.",
+        },
+        "context": {
+            "unavailable": "External benchmark data is currently unavailable for this dimension.",
+            "very_low": "You experience this context as considerably less supportive than most people in the reference group.",
+            "rather_low": "You experience this context as somewhat less supportive; some enabling conditions appear less present.",
+            "middle": "Your environment provides a level of support similar to that of the reference group.",
+            "rather_high": "You experience this context as relatively supportive of learning and change.",
+            "very_high": "You experience this context as highly supportive of adaptability, learning and change.",
+        },
+    },
+}

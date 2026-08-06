@@ -10,16 +10,18 @@ from translations import (
     DIMENSION_LABELS,
     GROUP_LABELS,
     GROUP_TEXTS,
-    INTERPRETATIONS,
+    DIMENSION_INTERPRETATIONS,
     LANGUAGE_NAMES,
     QUESTION_TRANSLATIONS,
     SELF_LEADERSHIP_TRANSLATIONS,
     SHORT_DESCRIPTIONS,
     SUBDIMENSION_LABELS,
+    SUMMARY_INSIGHTS,
     UI_TEXTS,
+    TRANSLATIONS_CONTENT_VERSION,
 )
 
-APP_CONTENT_VERSION = "2026-08-06-physical-feedback-v3"
+APP_CONTENT_VERSION = "2026-08-06-verified-layout-v7"
 
 # ---------------------------
 # APP CONFIG
@@ -617,22 +619,59 @@ def localized_subdimension_description(subdimension):
 
 
 def localized_band_label(level):
-    return UI_TEXTS.get(LANGUAGE, {}).get("percentile", {}).get(level, level)
+    key = normalized_level(level) if "normalized_level" in globals() else str(level or "unavailable")
+    return UI_TEXTS.get(LANGUAGE, {}).get("percentile", {}).get(key, key)
+
+
+INTERPRETATION_DIMENSION_ALIASES = {
+    "Capaciteit": ("capacity", "Capacité", "Capability"),
+    "Motivatie": ("motivation", "Motivation"),
+    "Job Karakteristieken": ("job_characteristics", "Jobkarakteristieken", "Caractéristiques du travail", "Caractéristiques du poste", "Job characteristics"),
+    "Teamadaptiviteit": ("team_adaptability", "Adaptabilité de l’équipe", "Team adaptability"),
+    "Teamklimaat": ("team_climate", "Climat d’équipe", "Team climate"),
+    "Richting & steun leidinggevende": ("own_manager", "leader_direction_support", "Jouw leidinggevende", "Votre propre responsable", "Direct manager"),
+    "Eigen leiderschap": ("self_leadership", "Jij als leidinggevende", "Vous en tant que responsable", "You as a manager"),
+    "Richting & steun van organisatie": ("organisation_direction_support", "Richting & Steun van Organisatie", "Orientation & soutien de l’organisation", "Organisational direction & support"),
+    "Organisatieadaptiviteit": ("organisation_adaptability", "Adaptabilité organisationnelle", "Organisational adaptability"),
+    "Organisatieklimaat": ("organisation_climate", "Climat organisationnel", "Organisational climate"),
+    "HR": ("hr", "HR-beleid", "Politique RH", "HR policy"),
+}
 
 
 def localized_system_interpretation(dimension, level):
-    """Return exactly one dimension-specific feedback text.
+    """Return the personalised dimension × percentile-band text."""
+    level_key = normalized_level(level) if "normalized_level" in globals() else str(level or "unavailable")
+    language_texts = DIMENSION_INTERPRETATIONS.get(LANGUAGE, {})
 
-    There is deliberately no generic individual/context fallback. Missing keys
-    remain visible during development instead of silently showing the wrong
-    language or an older generic explanation.
-    """
-    language_texts = INTERPRETATIONS.get(LANGUAGE, {})
-    dimension_texts = language_texts.get(dimension, {})
-    text_value = dimension_texts.get(level)
-    if text_value:
-        return str(text_value)
-    return dimension_texts.get("unavailable", "")
+    # Current canonical structure: language -> Dutch source dimension -> band.
+    direct = language_texts.get(dimension, {})
+    if isinstance(direct, dict):
+        value = direct.get(level_key)
+        if value and str(value).strip():
+            return str(value).strip()
+
+    # Compatibility with earlier online translation structures.
+    nested_texts = language_texts.get("by_dimension", {})
+    aliases = INTERPRETATION_DIMENSION_ALIASES.get(dimension, (dimension,))
+    translated_label = localized_dimension_label(dimension)
+    candidates = [dimension, translated_label, *aliases]
+    seen = set()
+    for candidate in candidates:
+        key = str(candidate or "").strip()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        for source in (language_texts, nested_texts):
+            dimension_texts = source.get(key, {})
+            if not isinstance(dimension_texts, dict):
+                continue
+            value = dimension_texts.get(level_key)
+            if isinstance(value, dict):
+                value = value.get("text") or value.get("feedback")
+            if value and str(value).strip():
+                return str(value).strip()
+
+    return T.get("interpretation_unavailable", "")
 
 
 def localized_group_label(group):
@@ -644,7 +683,8 @@ def localized_group_intro(group):
 
 
 def percentile_badge_html(percentile, level, self_assessment=False):
-    label = clean_text(localized_band_label(level))
+    level_key = normalized_level(level)
+    label = clean_text(localized_band_label(level_key))
     if self_assessment:
         prefix = clean_text(T.get("self_assessment", ""))
         text_value = f"{prefix} · {label}" if prefix else label
@@ -652,7 +692,12 @@ def percentile_badge_html(percentile, level, self_assessment=False):
         text_value = label
     else:
         text_value = f"P{float(percentile):.0f} · {label}"
-    return f'<span class="percentile-badge">{text_value}</span>'
+    palette = band_palette(level_key)
+    return (
+        '<span class="percentile-badge" '
+        f'style="background:{palette["bg"]};color:{palette["accent"]};border-color:{palette["border"]};">'
+        f'{text_value}</span>'
+    )
 
 
 def self_leadership_level(score):
@@ -664,6 +709,98 @@ def percentile_summary_text(percentile, level_label):
     if percentile is None:
         return level_label
     return f"P{float(percentile):.0f} · {level_label}"
+
+
+SUMMARY_DIMENSION_IDS = {
+    "Capaciteit": "capacity",
+    "Motivatie": "motivation",
+    "Job Karakteristieken": "job_characteristics",
+    "Teamadaptiviteit": "team_adaptability",
+    "Teamklimaat": "team_climate",
+    "Richting & steun leidinggevende": "own_manager",
+    "Eigen leiderschap": "self_leadership",
+    "Richting & steun van organisatie": "organisation_direction_support",
+    "Organisatieadaptiviteit": "organisation_adaptability",
+    "Organisatieklimaat": "organisation_climate",
+    "HR": "hr",
+}
+
+
+def localized_summary_insight(dimension, kind):
+    identifier = SUMMARY_DIMENSION_IDS.get(dimension, "")
+    return (
+        SUMMARY_INSIGHTS.get(LANGUAGE, {})
+        .get(kind, {})
+        .get(identifier, {})
+    )
+
+
+LEGACY_LEVEL_KEYS = {
+    "low": "very_low",
+    "below_avg": "rather_low",
+    "below-average": "rather_low",
+    "average": "middle",
+    "above_avg": "rather_high",
+    "above-average": "rather_high",
+    "high": "very_high",
+}
+
+BAND_PALETTE = {
+    "very_low": {"bg": "#FCE8EE", "accent": "#9A3656", "border": "#E7A9BA"},
+    "rather_low": {"bg": "#FFF3E2", "accent": "#996000", "border": "#EBCB92"},
+    "middle": {"bg": "#EAF2F6", "accent": "#426D7B", "border": "#B8D1DB"},
+    "rather_high": {"bg": "#E6F4F0", "accent": "#246E5A", "border": "#A8D4C7"},
+    "very_high": {"bg": "#DDF1E9", "accent": "#176247", "border": "#8FC6B1"},
+    "unavailable": {"bg": "#F3F5F6", "accent": "#667985", "border": "#D4DDE1"},
+}
+
+
+def normalized_level(level):
+    value = str(level or "unavailable").strip()
+    return LEGACY_LEVEL_KEYS.get(value, value)
+
+
+def band_css_class(level):
+    return f"band-{normalized_level(level).replace('_', '-')}"
+
+
+def band_palette(level):
+    return BAND_PALETTE.get(normalized_level(level), BAND_PALETTE["unavailable"])
+
+
+def band_card_style(level):
+    palette = band_palette(level)
+    return (
+        f'--band-bg:{palette["bg"]};--band-accent:{palette["accent"]};'
+        f'--band-border:{palette["border"]};border-color:{palette["border"]};'
+    )
+
+
+def benchmark_legend_html():
+    bands = (
+        ("P0–19", "very_low"),
+        ("P20–39", "rather_low"),
+        ("P40–59", "middle"),
+        ("P60–79", "rather_high"),
+        ("P80–100", "very_high"),
+    )
+    items = []
+    for percentile_range, level in bands:
+        palette = band_palette(level)
+        label = clean_text(localized_band_label(level))
+        items.append(
+            '<div class="benchmark-band" '
+            f'style="background:{palette["bg"]};border-color:{palette["border"]};color:{palette["accent"]};">'
+            f'<span>{percentile_range}</span><strong>{label}</strong></div>'
+        )
+    guide = clean_text(T.get("percentile_guide", ""))
+    return (
+        '<section class="benchmark-legend">'
+        '<div class="benchmark-guide"><span class="benchmark-info-icon">i</span>'
+        f'<span>{guide}</span></div>'
+        f'<div class="benchmark-bands">{"".join(items)}</div>'
+        '</section>'
+    )
 
 
 def score_to_percentile(score, dim, percentile_data):
@@ -773,6 +910,7 @@ def clean_text(text):
 def dimension_card_html(dimension, data):
     score = float(data["score"])
     percentile = data.get("percentile")
+    level = normalized_level(data.get("level"))
     subitems = data.get("subdimension", {})
 
     sub_html = ""
@@ -786,28 +924,28 @@ def dimension_card_html(dimension, data):
 
     title = localized_dimension_label(dimension)
     description = localized_dimension_short_description(dimension)
-    interpretation = localized_system_interpretation(dimension, data["level"])
-    badge = percentile_badge_html(percentile, data["level"])
+    interpretation = localized_system_interpretation(dimension, level)
+    badge = percentile_badge_html(percentile, level)
+    palette = band_palette(level)
 
     return (
-        '<article class="dimension-card">'
+        f'<article class="dimension-card {band_css_class(level)}" style="{band_card_style(level)}">'
         '<header class="dimension-header">'
-        '<div class="dimension-title-row">'
-        '<div class="dimension-title-wrap">'
+        '<div class="dimension-topline">'
         f'<span class="dimension-icon">{DIMENSION_ICONS[dimension]}</span>'
         f'<h3>{title}</h3>'
-        '</div>'
         f'{badge}'
         '</div>'
         f'<p class="dimension-description">{clean_text(description)}</p>'
         '</header>'
         '<div class="score-row">'
-        f'<div class="score-track"><div class="score-fill" style="width:{score / 5 * 100:.1f}%"></div></div>'
+        f'<div class="score-track"><div class="score-fill" '
+        f'style="width:{score / 5 * 100:.1f}%;background:linear-gradient(90deg,var(--blue),{palette["accent"]});"></div></div>'
         f'<span class="score-value">{score:.2f} / 5</span>'
         '</div>'
         f'{sub_html}'
-        f'<div class="interpretation-box"><b>{T["your_interpretation"]}</b>'
-        f'<p>{clean_text(interpretation)}</p></div>'
+        f'<div class="interpretation-box" style="background:{palette["bg"]};border-left-color:{palette["accent"]};">'
+        f'<b>{T["your_interpretation"]}</b><p>{clean_text(interpretation)}</p></div>'
         '</article>'
     )
 
@@ -820,37 +958,46 @@ def self_leadership_card_html(score, sub_scores):
     sub_html = f'<ul class="sub-list">{rows}</ul>' if rows else ""
 
     dimension = "Eigen leiderschap"
-    level = self_leadership_level(score)
+    level = normalized_level(self_leadership_level(score))
     title = localized_dimension_label(dimension)
-    description = localized_dimension_short_description(dimension)
+    if not title or title == dimension:
+        title = T.get("self_leadership_result", dimension)
+    description = (
+        localized_dimension_short_description(dimension)
+        or T.get("self_leadership_result_intro", "")
+    )
     interpretation = localized_system_interpretation(dimension, level)
     badge = percentile_badge_html(None, level, self_assessment=True)
+    palette = band_palette(level)
 
     return (
-        '<article class="dimension-card">'
+        f'<article class="dimension-card {band_css_class(level)}" style="{band_card_style(level)}">'
         '<header class="dimension-header">'
-        '<div class="dimension-title-row">'
-        '<div class="dimension-title-wrap">'
+        '<div class="dimension-topline">'
         f'<span class="dimension-icon">{DIMENSION_ICONS["Richting & steun leidinggevende"]}</span>'
         f'<h3>{title}</h3>'
-        '</div>'
         f'{badge}'
         '</div>'
         f'<p class="dimension-description">{clean_text(description)}</p>'
         '</header>'
         '<div class="score-row">'
-        f'<div class="score-track"><div class="score-fill" style="width:{float(score) / 5 * 100:.1f}%"></div></div>'
+        f'<div class="score-track"><div class="score-fill" '
+        f'style="width:{float(score) / 5 * 100:.1f}%;background:linear-gradient(90deg,var(--blue),{palette["accent"]});"></div></div>'
         f'<span class="score-value">{float(score):.2f} / 5</span>'
         '</div>'
         f'{sub_html}'
-        f'<div class="interpretation-box"><b>{T["your_interpretation"]}</b>'
-        f'<p>{clean_text(interpretation)}</p></div>'
+        f'<div class="interpretation-box" style="background:{palette["bg"]};border-left-color:{palette["accent"]};">'
+        f'<b>{T["your_interpretation"]}</b><p>{clean_text(interpretation)}</p></div>'
         '</article>'
     )
 
+
 st.markdown("""
 <style>
-:root { --primary:#0f566b; --blue:#2aa5ca; --yellow:#ffc271; --light-blue:#eef8fb; --text:#17313b; --muted:#667985; --line:#cfe1e7; }
+:root {
+    --primary:#0f566b; --blue:#2aa5ca; --yellow:#ffc271; --light-blue:#eef8fb;
+    --text:#17313b; --muted:#667985; --line:#cfe1e7;
+}
 html, body, [data-testid="stAppViewContainer"] {
     scroll-behavior: smooth;
     color:var(--text);
@@ -864,30 +1011,105 @@ h1,h2,h3 { color:var(--primary)!important; }
 .section-pill { display:inline-block; margin-bottom:.55rem; padding:.28rem .75rem; border-radius:999px; background:var(--primary); color:white; font-size:.78rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase; }
 .level-intro { padding:1rem 1.15rem; margin:.8rem 0 1rem; border-left:5px solid var(--primary); border-radius:14px; background:var(--light-blue); }
 .dimension-grid { display:grid; gap:1rem; grid-template-columns:repeat(6,minmax(0,1fr)); align-items:stretch; }
-.dimension-card { grid-column:span 2; min-height:100%; padding:1.05rem; border:1.5px solid var(--primary); border-radius:16px; background:white; box-shadow:0 8px 22px rgba(15,86,107,.07); display:flex; flex-direction:column; }
+.dimension-card {
+    --band-bg:#EAF2F6; --band-accent:var(--primary); --band-border:var(--primary);
+    position:relative; grid-column:span 2; min-height:100%; padding:1.15rem;
+    border:1.5px solid var(--band-border); border-radius:16px; background:white;
+    box-shadow:0 8px 22px rgba(15,86,107,.07); display:flex; flex-direction:column;
+}
 .dimension-grid.two .dimension-card { grid-column:span 3; }
 .dimension-grid.four .dimension-card { grid-column:span 3; }
-.dimension-header { min-height:145px; }
-.dimension-title-row { display:flex; justify-content:space-between; align-items:flex-start; gap:.7rem; }
-.dimension-title-wrap { display:flex; align-items:center; gap:.75rem; min-width:0; }
-.dimension-icon { flex:0 0 46px; width:46px; height:46px; border-radius:50%; background:var(--primary); color:white; display:grid; place-items:center; }
+.dimension-header { min-height:155px; }
+.dimension-topline {
+    display:grid;
+    grid-template-columns:46px minmax(0,1fr);
+    grid-template-rows:auto auto;
+    grid-template-areas:"icon badge" "icon title";
+    align-items:start; column-gap:.75rem; row-gap:.35rem; min-width:0;
+}
+.dimension-icon { grid-area:icon; flex:0 0 46px; width:46px; height:46px; border-radius:50%; background:var(--primary); color:white; display:grid; place-items:center; }
 .dimension-icon svg { width:68%; height:68%; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
-.dimension-card h3 { margin:0; font-size:1.05rem; line-height:1.2; }
-.dimension-description { margin:.75rem 0 0 3.6rem!important; }
+.dimension-card h3 {
+    grid-area:title; margin:0; min-width:0; font-size:.98rem; line-height:1.22;
+    overflow-wrap:normal; word-break:keep-all; hyphens:none;
+}
+.dimension-description { margin:.8rem 0 0 3.6rem!important; min-height:4.3em; }
 .dimension-card p { margin:0; font-size:.88rem; line-height:1.42; }
 .score-row { display:flex; gap:.7rem; align-items:center; margin:.9rem 0 .65rem; }
 .score-track { flex:1; height:9px; border-radius:999px; background:#e5f0f3; overflow:hidden; }
-.score-fill { height:100%; background:linear-gradient(90deg,var(--blue),var(--primary)); }
+.score-fill { height:100%; background:linear-gradient(90deg,var(--blue),var(--band-accent)); }
 .score-value { color:var(--primary); font-weight:800; white-space:nowrap; }
-.percentile-badge { flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center; padding:.48rem .72rem; border-radius:999px; background:#fff4df; color:#9a6200; font-size:.72rem; font-weight:800; line-height:1.2; text-align:center; text-transform:uppercase; white-space:nowrap; }
-.interpretation-box { margin-top:auto; padding:.8rem; border-radius:10px; background:var(--light-blue); }
+.percentile-badge {
+    grid-area:badge; position:static; z-index:1; display:inline-flex; align-items:center; justify-content:center;
+    justify-self:end; align-self:start; max-width:6.4rem; padding:.43rem .58rem;
+    border:1px solid var(--band-border); border-radius:999px;
+    font-size:.61rem; font-weight:800; line-height:1.18; text-align:center;
+    text-transform:uppercase; white-space:normal;
+}
+.interpretation-box {
+    margin-top:auto; min-height:9.5rem; padding:.9rem; border-radius:10px;
+    background:var(--band-bg); border-left:4px solid var(--band-accent);
+}
+.interpretation-box p { margin-top:.45rem!important; }
+.summary-grid { display:grid; grid-template-columns:1fr; gap:.85rem; margin:.4rem 0 1rem; }
+.summary-highlight {
+    --band-bg:#EAF2F6; --band-accent:var(--primary); --band-border:var(--line);
+    padding:1rem 1.1rem; border:1px solid var(--band-border);
+    border-left:5px solid var(--band-accent); border-radius:14px;
+    background:var(--band-bg); box-shadow:0 6px 18px rgba(15,86,107,.05);
+}
+.summary-highlight h4 { margin:0 0 .55rem; color:var(--primary); font-size:1rem; }
+.summary-highlight .summary-score { margin:.25rem 0 .55rem; font-weight:800; color:var(--primary); }
+.summary-highlight p { margin:0; line-height:1.5; }
+.summary-action { margin-top:.75rem; padding-top:.7rem; border-top:1px solid color-mix(in srgb, var(--band-accent) 24%, transparent); }
+.summary-action strong { display:block; margin-bottom:.25rem; color:var(--band-accent); }
+
+.benchmark-legend { margin:.4rem 0 1.35rem; }
+.benchmark-guide {
+    display:flex; align-items:flex-start; gap:.65rem; padding:.7rem .85rem;
+    border:1px solid var(--line); border-radius:10px; background:#f7fbfd;
+    color:var(--primary); font-size:.8rem; line-height:1.4;
+}
+.benchmark-info-icon {
+    flex:0 0 20px; width:20px; height:20px; display:grid; place-items:center;
+    border:1.5px solid var(--primary); border-radius:50%; font-weight:800; font-size:.72rem;
+}
+.benchmark-bands {
+    display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:.55rem; margin-top:.65rem;
+}
+.benchmark-band {
+    min-height:52px; padding:.55rem .65rem; border:1px solid; border-radius:9px;
+    display:flex; flex-direction:column; justify-content:center;
+    font-size:.68rem; line-height:1.15; text-transform:uppercase;
+}
+.benchmark-band span { font-weight:700; }
+.benchmark-band strong { margin-top:.22rem; font-size:.7rem; }
+
+.band-very-low { --band-bg:#FCE8EE; --band-accent:#9A3656; --band-border:#E7A9BA; }
+.band-rather-low { --band-bg:#FFF3E2; --band-accent:#996000; --band-border:#EBCB92; }
+.band-middle { --band-bg:#EAF2F6; --band-accent:#426D7B; --band-border:#B8D1DB; }
+.band-rather-high { --band-bg:#E6F4F0; --band-accent:#246E5A; --band-border:#A8D4C7; }
+.band-very-high { --band-bg:#DDF1E9; --band-accent:#176247; --band-border:#8FC6B1; }
+.band-unavailable { --band-bg:#F3F5F6; --band-accent:#667985; --band-border:#D4DDE1; }
 .sub-list { margin:.65rem 0 .8rem; padding-left:1rem; color:var(--text); font-size:.82rem; }
 .sub-list li { margin:.28rem 0; }
 div[data-testid="stRadio"] label p { font-size:.82rem; }
 @media (min-width:900px) { div[data-testid="stRadio"] div[role="radiogroup"] { flex-wrap:nowrap; gap:.45rem; } }
 .stButton>button { border:0; border-radius:999px; background:var(--primary); color:white; font-weight:700; padding-left:1.25rem; padding-right:1.25rem; }
 .stButton>button:hover { background:#0a4455; color:white; }
-@media(max-width:800px){ .block-container{padding:4.5rem 1rem 3rem}.dimension-grid,.dimension-grid.two,.dimension-grid.four{grid-template-columns:1fr}.dimension-card,.dimension-grid.two .dimension-card,.dimension-grid.four .dimension-card{grid-column:1}.dimension-header{min-height:0}.dimension-title-row{flex-wrap:wrap}.percentile-badge{margin-left:auto}.dimension-description{margin-left:0!important}.app-header{margin-left:-1rem;border-radius:0 28px 28px 0}.app-header h1{font-size:1.6rem} }
+@media(max-width:800px){
+    .block-container{padding:4.5rem 1rem 3rem}
+    .dimension-grid,.dimension-grid.two,.dimension-grid.four{grid-template-columns:1fr}
+    .dimension-card,.dimension-grid.two .dimension-card,.dimension-grid.four .dimension-card{grid-column:1}
+    .dimension-header{min-height:0}
+    .dimension-topline{grid-template-columns:46px minmax(0,1fr);grid-template-areas:"icon badge" "icon title";}
+    .percentile-badge{justify-self:end;max-width:7.2rem}
+    .dimension-description{margin-left:0!important;min-height:0}
+    .benchmark-bands{grid-template-columns:1fr 1fr}
+    .summary-grid{grid-template-columns:1fr}
+    .app-header{margin-left:-1rem;border-radius:0 28px 28px 0}
+    .app-header h1{font-size:1.6rem}
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -909,6 +1131,10 @@ with language_picker:
 if st.query_params.get("lang") != LANGUAGE:
     st.query_params["lang"] = LANGUAGE
 T = UI_TEXTS[LANGUAGE]
+if str(st.query_params.get("debug", "0")) == "1":
+    st.success(
+        f"Loaded build: {APP_CONTENT_VERSION} · translations: {TRANSLATIONS_CONTENT_VERSION}"
+    )
 
 
 def request_scroll_to_top():
@@ -1145,31 +1371,62 @@ elif st.session_state.step == 5:
     if not model_path.exists():
         model_path = model_paths["nl"]
 
-    # Het model krijgt minder breedte dan de inhoudelijke samenvatting.
-    model_column, summary_column = st.columns(
-        [0.85, 1.15],
-        gap="large",
-        vertical_alignment="top",
-    )
+    # Behoud de vertrouwde positie: model links, inhoudelijke duiding rechts.
+    # De teksten combineren de dimensie-interpretatie uit het grote rooster met
+    # de concrete synthese-/actieteksten uit het fysieke rapport.
+    strongest_insight = localized_summary_insight(strongest[0], "strengths")
+    weakest_insight = localized_summary_insight(weakest[0], "opportunities")
+
+    model_column, summary_column = st.columns([0.85, 1.15], gap="large", vertical_alignment="top")
+
     with model_column:
         st.subheader(T["model"])
         st.image(str(model_path), use_container_width=True)
+
     with summary_column:
         st.subheader(T["stands_out"])
-        with st.container(border=True):
-            st.markdown(
-                f"**{T['strongest']}**  \n"
-                f"{localized_dimension_label(strongest[0])}: {strongest[1]['score']:.2f} / 5  \n"
-                f"{percentile_summary_text(strongest_percentile, strongest_level)}  \n\n"
-                f"{clean_text(strongest_interpretation)}"
+        strongest_action = ""
+        if strongest_insight.get("text"):
+            strongest_action = (
+                '<div class="summary-action">'
+                f'<strong>{clean_text(strongest_insight.get("title", ""))}</strong>'
+                f'<p>{clean_text(strongest_insight.get("text", ""))}</p>'
+                '</div>'
             )
-            st.markdown(
-                f"**{T['development']}**  \n"
-                f"{localized_dimension_label(weakest[0])}: {weakest[1]['score']:.2f} / 5  \n"
-                f"{percentile_summary_text(weakest_percentile, weakest_level)}  \n\n"
-                f"{clean_text(weakest_interpretation)}"
+
+        weakest_action = ""
+        if weakest_insight.get("text"):
+            weakest_action = (
+                '<div class="summary-action">'
+                f'<strong>{clean_text(weakest_insight.get("title", ""))}</strong>'
+                f'<p>{clean_text(weakest_insight.get("text", ""))}</p>'
+                '</div>'
             )
-            st.info(T["summary_note"])
+
+        summary_html = (
+            '<div class="summary-grid">'
+            f'<section class="summary-highlight {band_css_class(strongest[1]["level"])}">'
+            f'<h4>{T["strongest"]}</h4>'
+            f'<div class="summary-score">{localized_dimension_label(strongest[0])}: '
+            f'{strongest[1]["score"]:.2f} / 5 · '
+            f'{percentile_summary_text(strongest_percentile, strongest_level)}</div>'
+            f'<p>{clean_text(strongest_interpretation)}</p>'
+            f'{strongest_action}'
+            '</section>'
+            f'<section class="summary-highlight {band_css_class(weakest[1]["level"])}">'
+            f'<h4>{T["development"]}</h4>'
+            f'<div class="summary-score">{localized_dimension_label(weakest[0])}: '
+            f'{weakest[1]["score"]:.2f} / 5 · '
+            f'{percentile_summary_text(weakest_percentile, weakest_level)}</div>'
+            f'<p>{clean_text(weakest_interpretation)}</p>'
+            f'{weakest_action}'
+            '</section>'
+            '</div>'
+        )
+        st.markdown(summary_html, unsafe_allow_html=True)
+        st.info(T["summary_note"])
+
+    st.markdown(f"<!-- {APP_CONTENT_VERSION} -->" + benchmark_legend_html(), unsafe_allow_html=True)
 
     self_leadership_score = st.session_state.get("self_leadership_score")
     self_leadership_subscores = st.session_state.get("self_leadership_subscores", {})
@@ -1193,8 +1450,6 @@ elif st.session_state.step == 5:
             else "dimension-grid"
         )
         st.markdown(f'<div class="{grid_class}">{"".join(cards)}</div>', unsafe_allow_html=True)
-
-    st.caption(T["percentile_guide"])
 
     # ---------------------------
     # RESET

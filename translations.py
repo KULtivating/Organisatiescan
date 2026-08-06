@@ -1,7 +1,9 @@
 """NL/FR/EN-inhoud voor de Adaptiviteit Systeemscan.
 
-De zichtbare teksten voor deel 2 staan één keer in dit bestand. INTERPRETATIONS gebruikt rechtstreeks dimensie- en percentielbandsleutels, zodat de online app geen generieke of dubbele feedbacktekst kan kiezen.
+De zichtbare teksten voor deel 2 staan één keer in dit bestand. DIMENSION_INTERPRETATIONS gebruikt rechtstreeks dimensie- en percentielbandsleutels, zodat de online app geen generieke of dubbele feedbacktekst kan kiezen.
 """
+
+TRANSLATIONS_CONTENT_VERSION = "2026-08-06-translations-v7"
 LANGUAGE_NAMES = {'nl': 'Nederlands', 'fr': 'Français', 'en': 'English'}
 
 UI_TEXTS = {'nl': {'title': 'Adaptiviteit Systeemscan',
@@ -58,6 +60,7 @@ UI_TEXTS = {'nl': {'title': 'Adaptiviteit Systeemscan',
                         'oordeel, maar wijst op een mogelijke hefboom voor meer adaptiviteit.',
         'score_interpretation': 'Externe vergelijking',
         'your_interpretation': 'Jouw interpretatie',
+        'interpretation_unavailable': 'De persoonlijke interpretatietekst kon niet worden geladen.',
         'restart': 'Opnieuw invullen',
         'percentile_guide': 'De vergelijking toont hoeveel procent van de externe referentiegroep lager scoort. ‘Hoger '
                             'dan ongeveer 76%’ is dus geen percentage juiste antwoorden.',
@@ -132,6 +135,7 @@ UI_TEXTS = {'nl': {'title': 'Adaptiviteit Systeemscan',
                         'faible n’est pas un jugement, mais indique un levier potentiel d’adaptabilité.',
         'score_interpretation': 'Comparaison externe',
         'your_interpretation': 'Votre interprétation',
+        'interpretation_unavailable': 'Le texte d’interprétation personnalisé n’a pas pu être chargé.',
         'restart': 'Recommencer',
         'percentile_guide': 'La comparaison indique le pourcentage du groupe de référence externe qui obtient un score '
                             'inférieur. « Supérieur à environ 76 % » n’est donc pas un pourcentage de bonnes réponses.',
@@ -202,6 +206,7 @@ UI_TEXTS = {'nl': {'title': 'Adaptiviteit Systeemscan',
                         'judgement, but indicates a potential lever for greater adaptability.',
         'score_interpretation': 'External comparison',
         'your_interpretation': 'Your interpretation',
+        'interpretation_unavailable': 'The personalised interpretation text could not be loaded.',
         'restart': 'Start again',
         'percentile_guide': 'The comparison shows what percentage of the external reference group scored lower. '
                             '‘Higher than approximately 76%’ is therefore not a percentage of correct answers.',
@@ -604,7 +609,7 @@ SUBDIMENSION_LABELS = {'nl': {'Perceived Behavioral Control': 'Ervaren gedragsco
         'Alignment': 'Alignment'}}
 
 # Eén bron voor alle dimensiespecifieke feedbackteksten.
-INTERPRETATIONS = {'nl': {'Capaciteit': {'unavailable': 'Voor deze dimensie zijn momenteel geen externe benchmarkgegevens beschikbaar.',
+DIMENSION_INTERPRETATIONS = {'nl': {'Capaciteit': {'unavailable': 'Voor deze dimensie zijn momenteel geen externe benchmarkgegevens beschikbaar.',
                        'very_low': 'Je score op Capaciteit ligt bij de laagste 20% van de benchmarkgroep. Je ervaart momenteel relatief '
                                    'weinig houvast om je aanpak doeltreffend aan te passen. Vooral vertrouwen in je invloed, het verwerken '
                                    'van informatie of het zien van het belang kan je vermogen om te schakelen beperken.',
@@ -1229,3 +1234,291 @@ INTERPRETATIONS = {'nl': {'Capaciteit': {'unavailable': 'Voor deze dimensie zijn
                'very_high': 'Your assessment of HR Policy is in the top 20% of the benchmark group. HR policy is experienced as '
                             'exceptionally well aligned with adaptability. Selection, development, evaluation and recognition reinforce '
                             'one another and make learning and change a visible part of good work.'}}}
+
+
+# Samenvattingsteksten uit het tabblad 'Synthese teksten' / de bijbehorende vertalingen.
+SUMMARY_INSIGHTS = {'nl': {'strengths': {'change_attitude': {'title': 'Benut je constructieve veranderhouding',
+                                          'text': 'Veranderattitude is je sterkste gedragspijler. Gebruik je '
+                                                  'bereidheid om verandering mee vorm te geven als startpunt: maak de '
+                                                  'bedoeling expliciet, nodig anderen uit om mee te denken en zet '
+                                                  'openheid om in een eerste concrete stap.'},
+                      'resilience_self_regulation': {'title': 'Steun op je veerkracht',
+                                                     'text': 'Veerkracht & Zelfregulatie is je sterkste gedragspijler. '
+                                                             'Gebruik je vermogen om rustig te blijven en te '
+                                                             'herstellen als basis: creëer overzicht bij druk en help '
+                                                             'jezelf en anderen om na tegenslag opnieuw gericht verder '
+                                                             'te gaan.'},
+                      'learning_development': {'title': 'Maak je leerdrive zichtbaar',
+                                               'text': 'Leermotivatie & Ontwikkeling is je sterkste gedragspijler. '
+                                                       'Gebruik je nieuwsgierigheid als motor: haal actief feedback '
+                                                       'op, vertaal een inzicht naar een klein experiment en deel wat '
+                                                       'je leert met anderen.'},
+                      'anticipation_preparation': {'title': 'Vertrek van je blik vooruit',
+                                                   'text': 'Vooruitzien & Voorbereiden is je sterkste gedragspijler. '
+                                                           'Gebruik je vermogen om signalen en scenario’s te zien als '
+                                                           'startpunt: maak één verwachte verandering concreet en '
+                                                           'bereid een haalbare eerste reactie voor.'},
+                      'creativity_innovation': {'title': 'Zet ideeën om in een kleine test',
+                                                'text': 'Creativiteit & Innovatie is je sterkste gedragspijler. '
+                                                        'Gebruik je vermogen om alternatieven te zien: kies één '
+                                                        'kansrijk idee, maak de test klein en zichtbaar en gebruik de '
+                                                        'uitkomst om gericht verder te verbeteren.'},
+                      'team_adaptability': {'title': 'Benut het aanpassingsvermogen van je team',
+                                            'text': 'Teamadaptiviteit is de meest ondersteunende factor in je '
+                                                    'dagelijkse werkomgeving. Maak gezamenlijke bijsturing expliciet '
+                                                    'in overleg en reflectie, zodat wat al werkt ook andere '
+                                                    'ontwikkelpunten mee kan versterken.'},
+                      'team_climate': {'title': 'Benut de openheid in je team',
+                                       'text': 'Teamklimaat is de meest ondersteunende factor in je dagelijkse '
+                                               'werkomgeving. Gebruik de aanwezige openheid en veiligheid om twijfels, '
+                                               'fouten en nieuwe ideeën sneller bespreekbaar te maken.'},
+                      'own_manager': {'title': 'Benut de steun van je leidinggevende',
+                                      'text': 'De steun van je eigen leidinggevende is de sterkste factor in je '
+                                              'dagelijkse werkomgeving. Maak gericht gebruik van de aanwezige '
+                                              'richting, structuur en leer- of experimenteerruimte om een volgende '
+                                              'stap mogelijk te maken.'},
+                      'self_leadership': {'title': 'Benut je eigen leiderschapsrol',
+                                          'text': 'Je eigen leiderschap is de sterkste factor in je dagelijkse '
+                                                  'werkomgeving. Gebruik je invloed op richting, structuur en '
+                                                  'verbinding bewust om je team meer ruimte te geven om te leren en '
+                                                  'bij te sturen.'}},
+        'opportunities': {'capacity': {'title': 'Versterk je handelingsvermogen',
+                                       'text': 'Hier ligt een belangrijke winst. Bouw je capaciteit stap voor stap op '
+                                               'via gerichte oefening, heldere informatie en kleine situaties waarin '
+                                               'je bewust ervaart dat je wél invloed kan uitoefenen.'},
+                          'motivation': {'title': 'Verbind verandering met betekenis',
+                                         'text': 'Hier ligt een belangrijke winst. Maak concreet waarom een '
+                                                 'verandering voor jou of je werk relevant is, kies een haalbare '
+                                                 'eerste stap en maak voortgang zichtbaar zodat energie en volharding '
+                                                 'kunnen groeien.'},
+                          'job_characteristics': {'title': 'Maak je job werkbaarder voor aanpassing',
+                                                  'text': 'Hier ligt een belangrijke winst. Versterk de voorwaarden in '
+                                                          'je job via één zichtbare ingreep, zoals meer '
+                                                          'rolduidelijkheid, gerichtere autonomie, werkbare '
+                                                          'afhankelijkheden of een duidelijker verband met betekenis '
+                                                          'en impact.'},
+                          'team_adaptability': {'title': 'Maak samen bijsturen concreet',
+                                                'text': 'Hier ligt een belangrijke winst. Bouw een kort ritme in '
+                                                        'waarin het team signalen deelt, één werkwijze evalueert en '
+                                                        'samen beslist wat behouden, gestopt of aangepast wordt.'},
+                          'team_climate': {'title': 'Vergroot openheid en veiligheid',
+                                           'text': 'Hier ligt een belangrijke winst. Maak ruimte om twijfels, fouten '
+                                                   'en afwijkende ideeën zonder defensiviteit te bespreken, en vertaal '
+                                                   'dat gesprek telkens naar een duidelijke gezamenlijke afspraak.'},
+                          'own_manager': {'title': 'Maak de gewenste steun bespreekbaar',
+                                          'text': 'Hier ligt een belangrijke winst. Bespreek met je eigen '
+                                                  'leidinggevende welke richting, structuur, verbinding of '
+                                                  'experimenteerruimte je nodig hebt om verandering met meer '
+                                                  'vertrouwen vast te nemen.'},
+                          'self_leadership': {'title': 'Versterk je adaptief leiderschap',
+                                              'text': 'Hier ligt een belangrijke winst. Kies in je eigen '
+                                                      'leiderschapsrol één zichtbaar gedrag rond richting, structuur, '
+                                                      'verbinding of leren en pas dit consequent toe in de begeleiding '
+                                                      'van je team.'},
+                          'organisation_direction_support': {'title': 'Maak organisatorische steun zichtbaar',
+                                                             'text': 'Hier ligt een belangrijke winst. Vertaal '
+                                                                     'richting en steun naar één concrete voorwaarde, '
+                                                                     'zoals duidelijkere prioriteiten, beschikbare '
+                                                                     'kennis, voldoende tijd of betere afstemming '
+                                                                     'tussen betrokken onderdelen.'},
+                          'organisation_adaptability': {'title': 'Verkort de weg van signaal naar verbetering',
+                                                        'text': 'Hier ligt een belangrijke winst. Maak expliciet hoe '
+                                                                'signalen worden opgepikt, wie ze opvolgt en wanneer '
+                                                                'een inzicht wordt omgezet in een besluit, experiment '
+                                                                'of structurele verbetering.'},
+                          'organisation_climate': {'title': 'Geef leren en experimenteren ruimte',
+                                                   'text': 'Hier ligt een belangrijke winst. Maak kleinschalig '
+                                                           'experimenteren zichtbaar veilig en zorg dat inzichten, ook '
+                                                           'uit minder geslaagde tests, systematisch worden gedeeld en '
+                                                           'benut.'},
+                          'hr': {'title': 'Breng HR-praktijken in lijn met adaptiviteit',
+                                 'text': 'Hier ligt een belangrijke winst. Maak leren en aanpassen herkenbaar in '
+                                         'ontwikkeling, feedback, evaluatie en waardering, zodat medewerkers in '
+                                         'verschillende HR-momenten dezelfde signalen krijgen.'}}},
+ 'fr': {'strengths': {'change_attitude': {'title': 'Mobilisez votre attitude constructive',
+                                          'text': 'L’attitude face au changement est votre pilier comportemental le '
+                                                  'plus fort. Utilisez votre volonté de façonner le changement : '
+                                                  'clarifiez son intention, invitez les autres à contribuer et '
+                                                  'transformez l’ouverture en première étape concrète.'},
+                      'resilience_self_regulation': {'title': 'Appuyez-vous sur votre résilience',
+                                                     'text': 'La résilience et l’autorégulation constituent votre '
+                                                             'pilier le plus fort. Utilisez votre capacité à rester '
+                                                             'calme et à récupérer : créez de la clarté sous pression '
+                                                             'et aidez-vous, ainsi que les autres, à repartir après un '
+                                                             'revers.'},
+                      'learning_development': {'title': 'Rendez visible votre motivation à apprendre',
+                                               'text': 'La motivation à apprendre et le développement constituent '
+                                                       'votre pilier le plus fort. Utilisez votre curiosité : '
+                                                       'sollicitez du feedback, transformez un enseignement en petite '
+                                                       'expérience et partagez vos apprentissages.'},
+                      'anticipation_preparation': {'title': 'Partez de votre regard vers l’avenir',
+                                                   'text': 'L’anticipation et la préparation constituent votre pilier '
+                                                           'le plus fort. Utilisez votre capacité à voir signaux et '
+                                                           'scénarios : concrétisez un changement attendu et préparez '
+                                                           'une première réponse réalisable.'},
+                      'creativity_innovation': {'title': 'Transformez les idées en petit test',
+                                                'text': 'La créativité et l’innovation constituent votre pilier le '
+                                                        'plus fort. Utilisez votre capacité à voir des alternatives : '
+                                                        'choisissez une idée prometteuse, rendez le test petit et '
+                                                        'visible et utilisez le résultat pour progresser.'},
+                      'team_adaptability': {'title': 'Mobilisez l’adaptabilité de votre équipe',
+                                            'text': 'L’adaptabilité de l’équipe est le facteur le plus favorable dans '
+                                                    'votre contexte quotidien. Rendez l’ajustement collectif explicite '
+                                                    'dans le dialogue et la réflexion afin que ce qui fonctionne '
+                                                    'renforce aussi d’autres points.'},
+                      'team_climate': {'title': 'Mobilisez l’ouverture de votre équipe',
+                                       'text': 'Le climat d’équipe est le facteur le plus favorable dans votre '
+                                               'contexte quotidien. Utilisez l’ouverture et la sécurité présentes pour '
+                                               'discuter plus vite des doutes, erreurs et nouvelles idées.'},
+                      'own_manager': {'title': 'Mobilisez le soutien de votre responsable',
+                                      'text': 'Le soutien de votre propre responsable est le facteur le plus fort dans '
+                                              'votre contexte quotidien. Utilisez consciemment la direction, la '
+                                              'structure et l’espace d’apprentissage ou d’expérimentation disponibles '
+                                              'pour permettre l’étape suivante.'},
+                      'self_leadership': {'title': 'Mobilisez votre propre rôle de responsable',
+                                          'text': 'Votre propre leadership est le facteur le plus fort dans votre '
+                                                  'contexte quotidien. Utilisez consciemment votre influence sur la '
+                                                  'direction, la structure et la connexion pour donner plus d’espace à '
+                                                  'l’équipe pour apprendre et s’ajuster.'}},
+        'opportunities': {'capacity': {'title': 'Renforcez votre capacité d’action',
+                                       'text': 'Il s’agit d’une occasion importante. Développez votre capacité pas à '
+                                               'pas par une pratique ciblée, des informations claires et de petites '
+                                               'situations où vous constatez consciemment votre influence.'},
+                          'motivation': {'title': 'Reliez le changement au sens',
+                                         'text': 'Il s’agit d’une occasion importante. Clarifiez pourquoi un '
+                                                 'changement compte pour vous ou votre travail, choisissez une '
+                                                 'première étape réalisable et rendez les progrès visibles pour faire '
+                                                 'grandir énergie et persévérance.'},
+                          'job_characteristics': {'title': 'Rendez votre travail plus favorable à l’adaptation',
+                                                  'text': 'Il s’agit d’une occasion importante. Améliorez les '
+                                                          'conditions du travail par un changement visible : rôles '
+                                                          'plus clairs, autonomie ciblée, dépendances gérables ou lien '
+                                                          'plus clair avec le sens et l’impact.'},
+                          'team_adaptability': {'title': 'Concrétisez l’ajustement collectif',
+                                                'text': 'Il s’agit d’une occasion importante. Installez un rythme '
+                                                        'court où l’équipe partage les signaux, évalue une méthode et '
+                                                        'décide ensemble ce qu’il faut conserver, arrêter ou ajuster.'},
+                          'team_climate': {'title': 'Accroissez l’ouverture et la sécurité',
+                                           'text': 'Il s’agit d’une occasion importante. Créez l’espace pour discuter '
+                                                   'des doutes, erreurs et idées divergentes sans défensive et '
+                                                   'traduisez chaque échange en accord collectif clair.'},
+                          'own_manager': {'title': 'Discutez du soutien souhaité',
+                                          'text': 'Il s’agit d’une occasion importante. Discutez avec votre propre '
+                                                  'responsable de la direction, de la structure, de la connexion ou de '
+                                                  'l’espace d’expérimentation nécessaires pour aborder le changement '
+                                                  'avec confiance.'},
+                          'self_leadership': {'title': 'Renforcez votre leadership adaptatif',
+                                              'text': 'Il s’agit d’une occasion importante. Choisissez un comportement '
+                                                      'visible de leadership autour de la direction, de la structure, '
+                                                      'de la connexion ou de l’apprentissage et appliquez-le de façon '
+                                                      'constante.'},
+                          'organisation_direction_support': {'title': 'Rendez visible le soutien organisationnel',
+                                                             'text': 'Il s’agit d’une occasion importante. Traduisez '
+                                                                     'la direction et le soutien en une condition '
+                                                                     'concrète : priorités plus claires, connaissances '
+                                                                     'disponibles, temps suffisant ou meilleur '
+                                                                     'alignement.'},
+                          'organisation_adaptability': {'title': 'Raccourcissez le chemin du signal à l’amélioration',
+                                                        'text': 'Il s’agit d’une occasion importante. Clarifiez '
+                                                                'comment les signaux sont repérés, qui les suit et '
+                                                                'quand un enseignement devient une décision, une '
+                                                                'expérience ou une amélioration structurelle.'},
+                          'organisation_climate': {'title': 'Créez de l’espace pour apprendre et expérimenter',
+                                                   'text': 'Il s’agit d’une occasion importante. Rendez '
+                                                           'l’expérimentation à petite échelle visiblement sûre et '
+                                                           'veillez à partager et utiliser systématiquement les '
+                                                           'enseignements, y compris des tests moins réussis.'},
+                          'hr': {'title': 'Alignez les pratiques RH sur l’adaptabilité',
+                                 'text': 'Il s’agit d’une occasion importante. Rendez l’apprentissage et l’adaptation '
+                                         'reconnaissables dans le développement, le feedback, l’évaluation et la '
+                                         'reconnaissance afin d’envoyer des signaux cohérents.'}}},
+ 'en': {'strengths': {'change_attitude': {'title': 'Use your constructive attitude to change',
+                                          'text': 'Attitude towards change is your strongest behaviour pillar. Use '
+                                                  'your willingness to shape change as a starting point: clarify its '
+                                                  'purpose, invite others to contribute and turn openness into a first '
+                                                  'concrete step.'},
+                      'resilience_self_regulation': {'title': 'Draw on your resilience',
+                                                     'text': 'Resilience & Self-regulation is your strongest behaviour '
+                                                             'pillar. Use your ability to stay calm and recover: '
+                                                             'create overview under pressure and help yourself and '
+                                                             'others move forward after setbacks.'},
+                      'learning_development': {'title': 'Make your learning drive visible',
+                                               'text': 'Learning Motivation & Development is your strongest behaviour '
+                                                       'pillar. Use curiosity as a driver: actively request feedback, '
+                                                       'turn one insight into a small experiment and share what you '
+                                                       'learn.'},
+                      'anticipation_preparation': {'title': 'Start from your forward view',
+                                                   'text': 'Anticipation & Preparation is your strongest behaviour '
+                                                           'pillar. Use your ability to see signals and scenarios: '
+                                                           'make one expected change concrete and prepare a feasible '
+                                                           'first response.'},
+                      'creativity_innovation': {'title': 'Turn ideas into a small test',
+                                                'text': 'Creativity & Innovation is your strongest behaviour pillar. '
+                                                        'Use your ability to see alternatives: choose one promising '
+                                                        'idea, make the test small and visible and use the result to '
+                                                        'improve.'},
+                      'team_adaptability': {'title': 'Use your team’s adaptability',
+                                            'text': 'Team Adaptability is the most supportive factor in your daily '
+                                                    'work context. Make joint adjustment explicit in dialogue and '
+                                                    'reflection so that what already works can strengthen other '
+                                                    'development areas.'},
+                      'team_climate': {'title': 'Use the openness in your team',
+                                       'text': 'Team Climate is the most supportive factor in your daily work context. '
+                                               'Use the available openness and safety to discuss doubts, mistakes and '
+                                               'new ideas sooner.'},
+                      'own_manager': {'title': 'Use your manager’s support',
+                                      'text': 'Support from your own manager is the strongest factor in your daily '
+                                              'work context. Deliberately use the available direction, structure and '
+                                              'room to learn or experiment to enable a next step.'},
+                      'self_leadership': {'title': 'Use your own management role',
+                                          'text': 'Your own leadership is the strongest factor in your daily work '
+                                                  'context. Deliberately use your influence on direction, structure '
+                                                  'and connection to give your team more room to learn and adjust.'}},
+        'opportunities': {'capacity': {'title': 'Strengthen your ability to act',
+                                       'text': 'This is an important opportunity. Build capability step by step '
+                                               'through focused practice, clear information and small situations in '
+                                               'which you consciously experience that you can exert influence.'},
+                          'motivation': {'title': 'Connect change with meaning',
+                                         'text': 'This is an important opportunity. Clarify why a change matters to '
+                                                 'you or your work, choose a feasible first step and make progress '
+                                                 'visible so energy and perseverance can grow.'},
+                          'job_characteristics': {'title': 'Make your job more supportive of adaptation',
+                                                  'text': 'This is an important opportunity. Improve job conditions '
+                                                          'through one visible change, such as clearer roles, targeted '
+                                                          'autonomy, workable dependencies or a clearer link with '
+                                                          'meaning and impact.'},
+                          'team_adaptability': {'title': 'Make joint adjustment concrete',
+                                                'text': 'This is an important opportunity. Establish a short rhythm in '
+                                                        'which the team shares signals, evaluates one working method '
+                                                        'and decides together what to retain, stop or adjust.'},
+                          'team_climate': {'title': 'Increase openness and safety',
+                                           'text': 'This is an important opportunity. Create room to discuss doubts, '
+                                                   'mistakes and divergent ideas without defensiveness and translate '
+                                                   'each conversation into a clear joint agreement.'},
+                          'own_manager': {'title': 'Discuss the support you need',
+                                          'text': 'This is an important opportunity. Discuss with your own manager '
+                                                  'what direction, structure, connection or room to experiment you '
+                                                  'need to engage with change more confidently.'},
+                          'self_leadership': {'title': 'Strengthen your adaptive leadership',
+                                              'text': 'This is an important opportunity. Choose one visible management '
+                                                      'behaviour around direction, structure, connection or learning '
+                                                      'and apply it consistently when supporting your team.'},
+                          'organisation_direction_support': {'title': 'Make organisational support visible',
+                                                             'text': 'This is an important opportunity. Translate '
+                                                                     'direction and support into one concrete '
+                                                                     'condition, such as clearer priorities, available '
+                                                                     'knowledge, sufficient time or better alignment.'},
+                          'organisation_adaptability': {'title': 'Shorten the path from signal to improvement',
+                                                        'text': 'This is an important opportunity. Clarify how signals '
+                                                                'are detected, who follows them up and when an insight '
+                                                                'becomes a decision, experiment or structural '
+                                                                'improvement.'},
+                          'organisation_climate': {'title': 'Create room for learning and experimentation',
+                                                   'text': 'This is an important opportunity. Make small-scale '
+                                                           'experimentation visibly safe and ensure that insights, '
+                                                           'including from less successful tests, are systematically '
+                                                           'shared and used.'},
+                          'hr': {'title': 'Align HR practices with adaptability',
+                                 'text': 'This is an important opportunity. Make learning and adaptation recognisable '
+                                         'in development, feedback, evaluation and recognition so employees receive '
+                                         'consistent signals across HR moments.'}}}}

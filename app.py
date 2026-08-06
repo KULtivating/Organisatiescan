@@ -19,6 +19,33 @@ from translations import (
     UI_TEXTS,
 )
 
+# De fysieke rapportgenerator bewaart zichtbare rapportteksten centraal in
+# translations.json. Deel 2 gebruikt diezelfde teksten wanneer de reporting-
+# package beschikbaar is. De bestaande translations.py-waarden blijven een
+# veilige fallback voor een standalone Streamlit-deployment.
+try:
+    from reporting.i18n import Translator
+    from reporting.report_taxonomy import (
+        DIMENSION_DESCRIPTION_KEYS as REPORT_DIMENSION_DESCRIPTION_KEYS,
+        DIMENSION_TERM_KEYS as REPORT_DIMENSION_TERM_KEYS,
+        subdimension_description_key as report_subdimension_description_key,
+        subdimension_source_title as report_subdimension_source_title,
+        subdimension_title_key as report_subdimension_title_key,
+    )
+except (ImportError, ModuleNotFoundError):
+    Translator = None
+    REPORT_DIMENSION_DESCRIPTION_KEYS = {}
+    REPORT_DIMENSION_TERM_KEYS = {}
+
+    def report_subdimension_source_title(value):
+        return str(value or "")
+
+    def report_subdimension_title_key(value):
+        return ""
+
+    def report_subdimension_description_key(value):
+        return ""
+
 # ---------------------------
 # APP CONFIG
 # ---------------------------
@@ -598,21 +625,142 @@ def interpret_score(percentile):
     else:
         return "high"
 
-individual_dims = [
+# Jobkarakteristieken hoort, net als in het fysieke rapport, bij de
+# persoonlijke basis. De overige dimensies beschrijven de werkcontext.
+INDIVIDUAL_FEEDBACK_DIMENSIONS = frozenset({
     "Capaciteit",
     "Motivatie",
-]
+    "Job Karakteristieken",
+})
 
-context_dims = [
-    "Job Karakteristieken"
-    "Teamadaptiviteit",
-    "Teamklimaat",
-    "Richting & steun leidinggevende",
-    "Organisatieadaptiviteit",
-    "Richting & steun van organisatie",
-    "Organisatieklimaat",
-    "HR"
-]
+# Exact dezelfde dimensie- en band-ID's als in individual.py. Daardoor worden
+# de actuele, dimensiespecifieke feedbackteksten uit translations.json gebruikt.
+SYSTEM_INTERPRETATION_IDS = {
+    "Capaciteit": "capacity",
+    "Motivatie": "motivation",
+    "Job Karakteristieken": "job_characteristics",
+    "Teamadaptiviteit": "team_adaptability",
+    "Teamklimaat": "team_climate",
+    "Richting & steun leidinggevende": "own_manager",
+    "Eigen leiderschap": "self_leadership",
+    "Richting & steun van organisatie": "organisation_direction_support",
+    "Organisatieadaptiviteit": "organisation_adaptability",
+    "Organisatieklimaat": "organisation_climate",
+    "HR": "hr",
+}
+
+SYSTEM_BAND_TRANSLATION_KEYS = {
+    "low": "low",
+    "below_avg": "below-average",
+    "average": "average",
+    "above_avg": "above-average",
+    "high": "high",
+}
+
+GROUP_REPORT_KEYS = {
+    "Individuele basis": "individu",
+    "Team & leidinggevende": "team",
+    "Organisatie": "organisatie",
+}
+
+REPORT_TRANSLATOR = None
+
+
+def _report_text(key, fallback="", **params):
+    """Vertaal één rapportkey en val veilig terug op de bestaande apptekst."""
+    if not key or REPORT_TRANSLATOR is None:
+        return str(fallback or "")
+    try:
+        value = REPORT_TRANSLATOR(key, **params)
+    except Exception:
+        return str(fallback or "")
+    if value is None or str(value).strip() in {"", key}:
+        return str(fallback or "")
+    return str(value)
+
+
+def interpretation_kind_for_dimension(dimension):
+    return "individual" if dimension in INDIVIDUAL_FEEDBACK_DIMENSIONS else "context"
+
+
+def fallback_interpretation(language, dimension, level, fallback=""):
+    """Ondersteun zowel de oude als een optionele dimensiespecifieke structuur."""
+    language_texts = INTERPRETATIONS.get(language, {})
+    dimension_texts = language_texts.get("by_dimension", {}).get(dimension, {})
+    if level in dimension_texts:
+        return dimension_texts[level]
+    kind = interpretation_kind_for_dimension(dimension)
+    return language_texts.get(kind, {}).get(level, fallback)
+
+
+def localized_dimension_label(dimension):
+    fallback = DIMENSION_LABELS.get(LANGUAGE, {}).get(dimension, dimension)
+    return _report_text(REPORT_DIMENSION_TERM_KEYS.get(dimension, ""), fallback)
+
+
+def localized_dimension_description(dimension):
+    fallback = dimension_meta.get(dimension, {}).get("description", "")
+    return _report_text(REPORT_DIMENSION_DESCRIPTION_KEYS.get(dimension, ""), fallback)
+
+
+def localized_dimension_short_description(dimension):
+    fallback = SHORT_DESCRIPTIONS.get(LANGUAGE, {}).get(
+        dimension,
+        DIMENSION_SHORT_DESCRIPTIONS.get(dimension, ""),
+    )
+    description = localized_dimension_description(dimension).strip()
+    if not description:
+        return fallback
+    first_sentence = description.split(".", 1)[0].strip()
+    return f"{first_sentence}." if first_sentence else fallback
+
+
+def localized_subdimension_label(subdimension):
+    fallback = SUBDIMENSION_LABELS.get(LANGUAGE, {}).get(
+        subdimension,
+        report_subdimension_source_title(subdimension),
+    )
+    return _report_text(report_subdimension_title_key(subdimension), fallback)
+
+
+def localized_subdimension_description(subdimension):
+    fallback = subdimension_meta.get(subdimension, {}).get("description", "")
+    return _report_text(report_subdimension_description_key(subdimension), fallback)
+
+
+def localized_band_label(level):
+    fallback = T.get(f"level_{level}", level)
+    band = SYSTEM_BAND_TRANSLATION_KEYS.get(level, level)
+    return _report_text(f"individual_report.bands.{band}", fallback)
+
+
+def localized_system_interpretation(dimension, level, fallback=""):
+    legacy_fallback = fallback_interpretation(
+        LANGUAGE,
+        dimension,
+        level,
+        fallback=fallback,
+    )
+    dimension_id = SYSTEM_INTERPRETATION_IDS.get(dimension, "")
+    band = SYSTEM_BAND_TRANSLATION_KEYS.get(level, level)
+    return _report_text(
+        f"individual_report.system.interpretations.{dimension_id}.{band}"
+        if dimension_id else "",
+        legacy_fallback,
+        dimension=localized_dimension_label(dimension),
+    )
+
+
+def localized_group_label(group):
+    fallback = GROUP_LABELS.get(LANGUAGE, {}).get(group, group)
+    block = GROUP_REPORT_KEYS[group]
+    return _report_text(f"individual_report.ui.part2.blocks.{block}.title", fallback)
+
+
+def localized_group_intro(group):
+    fallback = GROUP_TEXTS.get(LANGUAGE, {}).get(group, GROUP_INTROS.get(group, ""))
+    block = GROUP_REPORT_KEYS[group]
+    return _report_text(f"individual_report.ui.part2.blocks.{block}.intro", fallback)
 
 interpretation_text_individual = {
 
@@ -708,20 +856,28 @@ def build_report(dim_scores, percentiles_df):
 
         level = interpret_score(percentile)
 
-        interpretation_kind = "individual" if dim in individual_dims else "context"
-        if LANGUAGE in INTERPRETATIONS:
-            text = INTERPRETATIONS[LANGUAGE][interpretation_kind][level]
-        elif interpretation_kind == "individual":
-            text = interpretation_text_individual[level]
-        else:
-            text = interpretation_text_context[level]
+        interpretation_kind = interpretation_kind_for_dimension(dim)
+        fallback_text = (
+            interpretation_text_individual[level]
+            if interpretation_kind == "individual"
+            else interpretation_text_context[level]
+        )
+        text = localized_system_interpretation(
+            dim,
+            level,
+            fallback=fallback_text,
+        )
 
         report[dim] = {
             "score": round(score, 2),
             "percentile": round(percentile, 1),
             "level": level,
             "text": text,
-            "meta": dimension_meta[dim]
+            "meta": {
+                **dimension_meta[dim],
+                "title": localized_dimension_label(dim),
+                "description": localized_dimension_description(dim),
+            },
         }
 
     return report
@@ -735,8 +891,17 @@ SURVEY_DIMENSION_GROUPS = {
 
 OUTPUT_DIMENSION_GROUPS = {
     "Individuele basis": ["Capaciteit", "Motivatie", "Job Karakteristieken"],
-    "Team & leidinggevende": ["Teamadaptiviteit", "Teamklimaat"],
-    "Organisatie": ["Richting & steun leidinggevende", "Organisatieadaptiviteit", "Richting & steun van organisatie", "Organisatieklimaat", "HR"],
+    "Team & leidinggevende": [
+        "Teamadaptiviteit",
+        "Teamklimaat",
+        "Richting & steun leidinggevende",
+    ],
+    "Organisatie": [
+        "Richting & steun van organisatie",
+        "Organisatieadaptiviteit",
+        "Organisatieklimaat",
+        "HR",
+    ],
 }
 
 GROUP_INTROS = {
@@ -781,20 +946,25 @@ def dimension_card_html(dimension, data):
     subitems = data.get("subdimension", {})
     sub_html = ""
     if subitems:
-        rows = "".join(f'<li><b>{SUBDIMENSION_LABELS[LANGUAGE].get(name, name)}</b>: {float(item["score"]):.2f} / 5</li>' for name, item in subitems.items())
+        rows = "".join(
+            f'<li><b>{localized_subdimension_label(name)}</b>: '
+            f'{float(item["score"]):.2f} / 5</li>'
+            for name, item in subitems.items()
+        )
         sub_html = f'<ul class="sub-list">{rows}</ul>'
-    level_label = T[f'level_{data["level"]}']
-    individual_dimensions = {"Capaciteit", "Motivatie", "Job Karakteristieken"}
-    interpretation_kind = "individual" if dimension in individual_dimensions else "context"
-    interpretation = (
-        INTERPRETATIONS[LANGUAGE][interpretation_kind][data["level"]]
-        if LANGUAGE in INTERPRETATIONS else data["text"]
+    level_label = localized_band_label(data["level"])
+    interpretation = localized_system_interpretation(
+        dimension,
+        data["level"],
+        fallback=data["text"],
     )
+    dimension_title = localized_dimension_label(dimension)
+    short_description = localized_dimension_short_description(dimension)
     return (
         '<article class="dimension-card">'
         '<header class="dimension-header">'
         f'<span class="dimension-icon">{DIMENSION_ICONS[dimension]}</span>'
-        f'<div><h3>{DIMENSION_LABELS[LANGUAGE][dimension]}</h3><p>{SHORT_DESCRIPTIONS[LANGUAGE][dimension]}</p></div>'
+        f'<div><h3>{dimension_title}</h3><p>{clean_text(short_description)}</p></div>'
         '</header>'
         '<div class="score-row">'
         f'<div class="score-track"><div class="score-fill" style="width:{score / 5 * 100:.1f}%"></div></div>'
@@ -808,22 +978,35 @@ def dimension_card_html(dimension, data):
 
 def self_leadership_card_html(score, sub_scores):
     rows = "".join(
-        f'<li><b>{SUBDIMENSION_LABELS[LANGUAGE].get(name, name)}</b>: {value:.2f} / 5</li>'
+        f'<li><b>{localized_subdimension_label(name)}</b>: {value:.2f} / 5</li>'
         for name, value in sub_scores.items()
     )
     sub_html = f'<ul class="sub-list">{rows}</ul>' if rows else ""
+    title = _report_text("leadership.self_title", T["self_leadership_result"])
+    description = _report_text(
+        "leadership.self_description",
+        T["self_leadership_result_intro"],
+    )
+    benchmark = _report_text(
+        "leadership.self_assessment_badge",
+        T["self_benchmark_unavailable"],
+    )
+    interpretation = _report_text(
+        "leadership.self_interpretation",
+        T["self_recommendation_text"],
+    )
     return (
         '<article class="dimension-card">'
         '<header class="dimension-header">'
         f'<span class="dimension-icon">{DIMENSION_ICONS["Richting & steun leidinggevende"]}</span>'
-        f'<div><h3>{T["self_leadership_result"]}</h3><p>{T["self_leadership_result_intro"]}</p></div>'
+        f'<div><h3>{title}</h3><p>{clean_text(description)}</p></div>'
         '</header>'
         '<div class="score-row">'
         f'<div class="score-track"><div class="score-fill" style="width:{score / 5 * 100:.1f}%"></div></div>'
         f'<span class="score-value">{score:.2f} / 5</span></div>'
-        f'<span class="percentile-badge"><b>{T["score_interpretation"]}</b> · {T["self_benchmark_unavailable"]}</span>'
+        f'<span class="percentile-badge"><b>{T["score_interpretation"]}</b> · {benchmark}</span>'
         f'{sub_html}'
-        f'<div class="interpretation-box"><b>{T["self_recommendation"]}</b><p>{T["self_recommendation_text"]}</p></div>'
+        f'<div class="interpretation-box"><b>{T["self_recommendation"]}</b><p>{clean_text(interpretation)}</p></div>'
         '</article>'
     )
 
@@ -885,6 +1068,13 @@ with language_picker:
 if st.query_params.get("lang") != LANGUAGE:
     st.query_params["lang"] = LANGUAGE
 T = UI_TEXTS[LANGUAGE]
+REPORT_TRANSLATOR = None
+if Translator is not None:
+    try:
+        REPORT_TRANSLATOR = Translator(LANGUAGE)
+    except Exception:
+        # Standalone gebruik blijft mogelijk met translations.py als fallback.
+        REPORT_TRANSLATOR = None
 
 
 def request_scroll_to_top():
@@ -1038,7 +1228,7 @@ elif st.session_state.step in (2, 3, 4):
                         if meta["dimension"] == dimension and meta["subdimension"] == sub:
                             report[dimension]["subdimension"][sub] = {
                                 "score": score,
-                                "description": subdimension_meta.get(sub, {}).get("description", ""),
+                                "description": localized_subdimension_description(sub),
                             }
                             break
             st.session_state.report = report
@@ -1093,55 +1283,73 @@ elif st.session_state.step == 5:
     weakest = min(report.items(), key=lambda item: item[1]["percentile"])
     strongest_percentile = f'{strongest[1]["percentile"]:.0f}'
     weakest_percentile = f'{weakest[1]["percentile"]:.0f}'
-    strongest_level = T[f'level_{strongest[1]["level"]}']
-    weakest_level = T[f'level_{weakest[1]["level"]}']
+    strongest_level = localized_band_label(strongest[1]["level"])
+    weakest_level = localized_band_label(weakest[1]["level"])
+    strongest_interpretation = localized_system_interpretation(
+        strongest[0], strongest[1]["level"], fallback=strongest[1]["text"]
+    )
+    weakest_interpretation = localized_system_interpretation(
+        weakest[0], weakest[1]["level"], fallback=weakest[1]["text"]
+    )
 
     st.markdown(f'<span class="section-pill">{T["profile_pill"]}</span>', unsafe_allow_html=True)
     st.title(T["thanks"])
-    st.write(T["result_intro"])
+    result_intro = _report_text(
+        "individual_report.ui.part2.intro_html",
+        T["result_intro"],
+    )
+    st.markdown(result_intro, unsafe_allow_html=True)
 
     assets_dir = Path(__file__).resolve().parent / "assets"
-    visual_paths = {
-        "nl": assets_dir / "Visual.png",
-        "fr": assets_dir / "visual_fr.png",
-        "en": assets_dir / "visual_en.png",
+    model_paths = {
+        "nl": assets_dir / "Model NL.png",
+        "en": assets_dir / "Model EN.png",
+        "fr": assets_dir / "Model FR.png",
     }
-    visual_path = visual_paths[LANGUAGE]
-    if not visual_path.exists():
-        visual_path = visual_paths["nl"]
+    model_path = model_paths.get(LANGUAGE, model_paths["nl"])
+    if not model_path.exists():
+        model_path = model_paths["nl"]
 
-    visual_column, summary_column = st.columns([1.45, .75], gap="large", vertical_alignment="top")
-    with visual_column:
+    # Het model krijgt minder breedte dan de inhoudelijke samenvatting.
+    model_column, summary_column = st.columns(
+        [0.85, 1.15],
+        gap="large",
+        vertical_alignment="top",
+    )
+    with model_column:
         st.subheader(T["model"])
-        st.image(str(visual_path), use_container_width=True)
+        st.image(str(model_path), use_container_width=True)
     with summary_column:
         st.subheader(T["stands_out"])
         with st.container(border=True):
             st.markdown(
                 f"**{T['strongest']}**  \n"
-                f"{DIMENSION_LABELS[LANGUAGE][strongest[0]]}: {strongest[1]['score']:.2f} / 5  \n"
-                f"{T['higher_than'].format(p=strongest_percentile)} · {strongest_level}"
+                f"{localized_dimension_label(strongest[0])}: {strongest[1]['score']:.2f} / 5  \n"
+                f"{T['higher_than'].format(p=strongest_percentile)} · {strongest_level}  \n\n"
+                f"{clean_text(strongest_interpretation)}"
             )
             st.markdown(
                 f"**{T['development']}**  \n"
-                f"{DIMENSION_LABELS[LANGUAGE][weakest[0]]}: {weakest[1]['score']:.2f} / 5  \n"
-                f"{T['higher_than'].format(p=weakest_percentile)} · {weakest_level}  \n"
-                f"{T['lower_context']}"
+                f"{localized_dimension_label(weakest[0])}: {weakest[1]['score']:.2f} / 5  \n"
+                f"{T['higher_than'].format(p=weakest_percentile)} · {weakest_level}  \n\n"
+                f"{clean_text(weakest_interpretation)}"
             )
             st.info(T["summary_note"])
 
     self_leadership_score = st.session_state.get("self_leadership_score")
     self_leadership_subscores = st.session_state.get("self_leadership_subscores", {})
-    is_manager = st.session_state.get("is_manager", False)
     for group, configured_dimensions in OUTPUT_DIMENSION_GROUPS.items():
         dimensions = list(configured_dimensions)
-        if group == "Team & leidinggevende" and not is_manager:
-            dimensions.append("Richting & steun leidinggevende")
-        if group == "Organisatie" and not is_manager:
-            dimensions.remove("Richting & steun leidinggevende")
-        st.markdown(f"## {GROUP_LABELS[LANGUAGE][group]}")
-        st.markdown(f'<div class="level-intro">{GROUP_TEXTS[LANGUAGE][group]}</div>', unsafe_allow_html=True)
-        cards = [dimension_card_html(dimension, report[dimension]) for dimension in dimensions if dimension in report]
+        st.markdown(f"## {localized_group_label(group)}")
+        st.markdown(
+            f'<div class="level-intro">{localized_group_intro(group)}</div>',
+            unsafe_allow_html=True,
+        )
+        cards = [
+            dimension_card_html(dimension, report[dimension])
+            for dimension in dimensions
+            if dimension in report
+        ]
         if group == "Team & leidinggevende" and self_leadership_score is not None:
             cards.append(self_leadership_card_html(self_leadership_score, self_leadership_subscores))
         grid_class = (

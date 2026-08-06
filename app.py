@@ -19,32 +19,7 @@ from translations import (
     UI_TEXTS,
 )
 
-# De fysieke rapportgenerator bewaart zichtbare rapportteksten centraal in
-# translations.json. Deel 2 gebruikt diezelfde teksten wanneer de reporting-
-# package beschikbaar is. De bestaande translations.py-waarden blijven een
-# veilige fallback voor een standalone Streamlit-deployment.
-try:
-    from reporting.i18n import Translator
-    from reporting.report_taxonomy import (
-        DIMENSION_DESCRIPTION_KEYS as REPORT_DIMENSION_DESCRIPTION_KEYS,
-        DIMENSION_TERM_KEYS as REPORT_DIMENSION_TERM_KEYS,
-        subdimension_description_key as report_subdimension_description_key,
-        subdimension_source_title as report_subdimension_source_title,
-        subdimension_title_key as report_subdimension_title_key,
-    )
-except (ImportError, ModuleNotFoundError):
-    Translator = None
-    REPORT_DIMENSION_DESCRIPTION_KEYS = {}
-    REPORT_DIMENSION_TERM_KEYS = {}
-
-    def report_subdimension_source_title(value):
-        return str(value or "")
-
-    def report_subdimension_title_key(value):
-        return ""
-
-    def report_subdimension_description_key(value):
-        return ""
+APP_CONTENT_VERSION = "2026-08-06-physical-feedback-v3"
 
 # ---------------------------
 # APP CONFIG
@@ -609,208 +584,87 @@ def build_dimension_scores(answers):
 # ---------------------------
 
 def interpret_score(percentile):
-
+    """Map an external percentile to the shared online band keys."""
+    if percentile is None:
+        return "unavailable"
     if percentile < 20:
-        return "low"
-
-    elif percentile < 40:
-        return "below_avg"
-
-    elif percentile < 60:
-        return "average"
-
-    elif percentile < 80:
-        return "above_avg"
-
-    else:
-        return "high"
-
-# Jobkarakteristieken hoort, net als in het fysieke rapport, bij de
-# persoonlijke basis. De overige dimensies beschrijven de werkcontext.
-INDIVIDUAL_FEEDBACK_DIMENSIONS = frozenset({
-    "Capaciteit",
-    "Motivatie",
-    "Job Karakteristieken",
-})
-
-# Exact dezelfde dimensie- en band-ID's als in individual.py. Daardoor worden
-# de actuele, dimensiespecifieke feedbackteksten uit translations.json gebruikt.
-SYSTEM_INTERPRETATION_IDS = {
-    "Capaciteit": "capacity",
-    "Motivatie": "motivation",
-    "Job Karakteristieken": "job_characteristics",
-    "Teamadaptiviteit": "team_adaptability",
-    "Teamklimaat": "team_climate",
-    "Richting & steun leidinggevende": "own_manager",
-    "Eigen leiderschap": "self_leadership",
-    "Richting & steun van organisatie": "organisation_direction_support",
-    "Organisatieadaptiviteit": "organisation_adaptability",
-    "Organisatieklimaat": "organisation_climate",
-    "HR": "hr",
-}
-
-SYSTEM_BAND_TRANSLATION_KEYS = {
-    "low": "low",
-    "below_avg": "below-average",
-    "average": "average",
-    "above_avg": "above-average",
-    "high": "high",
-}
-
-GROUP_REPORT_KEYS = {
-    "Individuele basis": "individu",
-    "Team & leidinggevende": "team",
-    "Organisatie": "organisatie",
-}
-
-REPORT_TRANSLATOR = None
-
-
-def _report_text(key, fallback="", **params):
-    """Vertaal één rapportkey en val veilig terug op de bestaande apptekst."""
-    if not key or REPORT_TRANSLATOR is None:
-        return str(fallback or "")
-    try:
-        value = REPORT_TRANSLATOR(key, **params)
-    except Exception:
-        return str(fallback or "")
-    if value is None or str(value).strip() in {"", key}:
-        return str(fallback or "")
-    return str(value)
-
-
-def interpretation_kind_for_dimension(dimension):
-    return "individual" if dimension in INDIVIDUAL_FEEDBACK_DIMENSIONS else "context"
-
-
-def fallback_interpretation(language, dimension, level, fallback=""):
-    """Ondersteun zowel de oude als een optionele dimensiespecifieke structuur."""
-    language_texts = INTERPRETATIONS.get(language, {})
-    dimension_texts = language_texts.get("by_dimension", {}).get(dimension, {})
-    if level in dimension_texts:
-        return dimension_texts[level]
-    kind = interpretation_kind_for_dimension(dimension)
-    return language_texts.get(kind, {}).get(level, fallback)
+        return "very_low"
+    if percentile < 40:
+        return "rather_low"
+    if percentile < 60:
+        return "middle"
+    if percentile < 80:
+        return "rather_high"
+    return "very_high"
 
 
 def localized_dimension_label(dimension):
-    fallback = DIMENSION_LABELS.get(LANGUAGE, {}).get(dimension, dimension)
-    return _report_text(REPORT_DIMENSION_TERM_KEYS.get(dimension, ""), fallback)
-
-
-def localized_dimension_description(dimension):
-    fallback = dimension_meta.get(dimension, {}).get("description", "")
-    return _report_text(REPORT_DIMENSION_DESCRIPTION_KEYS.get(dimension, ""), fallback)
+    return DIMENSION_LABELS.get(LANGUAGE, {}).get(dimension, dimension)
 
 
 def localized_dimension_short_description(dimension):
-    fallback = SHORT_DESCRIPTIONS.get(LANGUAGE, {}).get(
-        dimension,
-        DIMENSION_SHORT_DESCRIPTIONS.get(dimension, ""),
-    )
-    description = localized_dimension_description(dimension).strip()
-    if not description:
-        return fallback
-    first_sentence = description.split(".", 1)[0].strip()
-    return f"{first_sentence}." if first_sentence else fallback
+    return SHORT_DESCRIPTIONS.get(LANGUAGE, {}).get(dimension, "")
 
 
 def localized_subdimension_label(subdimension):
-    fallback = SUBDIMENSION_LABELS.get(LANGUAGE, {}).get(
-        subdimension,
-        report_subdimension_source_title(subdimension),
-    )
-    return _report_text(report_subdimension_title_key(subdimension), fallback)
+    return SUBDIMENSION_LABELS.get(LANGUAGE, {}).get(subdimension, subdimension)
 
 
 def localized_subdimension_description(subdimension):
-    fallback = subdimension_meta.get(subdimension, {}).get("description", "")
-    return _report_text(report_subdimension_description_key(subdimension), fallback)
+    # Online cards currently show the translated label and score only. Returning
+    # an empty value prevents Dutch source copy from leaking into FR/EN payloads.
+    return ""
 
 
 def localized_band_label(level):
-    fallback = T.get(f"level_{level}", level)
-    band = SYSTEM_BAND_TRANSLATION_KEYS.get(level, level)
-    return _report_text(f"individual_report.bands.{band}", fallback)
+    return UI_TEXTS.get(LANGUAGE, {}).get("percentile", {}).get(level, level)
 
 
-def localized_system_interpretation(dimension, level, fallback=""):
-    legacy_fallback = fallback_interpretation(
-        LANGUAGE,
-        dimension,
-        level,
-        fallback=fallback,
-    )
-    dimension_id = SYSTEM_INTERPRETATION_IDS.get(dimension, "")
-    band = SYSTEM_BAND_TRANSLATION_KEYS.get(level, level)
-    return _report_text(
-        f"individual_report.system.interpretations.{dimension_id}.{band}"
-        if dimension_id else "",
-        legacy_fallback,
-        dimension=localized_dimension_label(dimension),
-    )
+def localized_system_interpretation(dimension, level):
+    """Return exactly one dimension-specific feedback text.
+
+    There is deliberately no generic individual/context fallback. Missing keys
+    remain visible during development instead of silently showing the wrong
+    language or an older generic explanation.
+    """
+    language_texts = INTERPRETATIONS.get(LANGUAGE, {})
+    dimension_texts = language_texts.get(dimension, {})
+    text_value = dimension_texts.get(level)
+    if text_value:
+        return str(text_value)
+    return dimension_texts.get("unavailable", "")
 
 
 def localized_group_label(group):
-    fallback = GROUP_LABELS.get(LANGUAGE, {}).get(group, group)
-    block = GROUP_REPORT_KEYS[group]
-    return _report_text(f"individual_report.ui.part2.blocks.{block}.title", fallback)
+    return GROUP_LABELS.get(LANGUAGE, {}).get(group, group)
 
 
 def localized_group_intro(group):
-    fallback = GROUP_TEXTS.get(LANGUAGE, {}).get(group, GROUP_INTROS.get(group, ""))
-    block = GROUP_REPORT_KEYS[group]
-    return _report_text(f"individual_report.ui.part2.blocks.{block}.intro", fallback)
+    return GROUP_TEXTS.get(LANGUAGE, {}).get(group, GROUP_INTROS.get(group, ""))
 
-interpretation_text_individual = {
 
-    "low": """
-    Je scoort lager dan de meeste respondenten op deze dimensie. Dit wijst erop dat deze eigenschap momenteel minder sterk aanwezig is bij jou,
-    wat het moeilijker kan maken om flexibel om te gaan met verandering en nieuwe situaties.
-    """,
+def percentile_badge_html(percentile, level, self_assessment=False):
+    label = clean_text(localized_band_label(level))
+    if self_assessment:
+        prefix = clean_text(T.get("self_assessment", ""))
+        text_value = f"{prefix} · {label}" if prefix else label
+    elif percentile is None:
+        text_value = label
+    else:
+        text_value = f"P{float(percentile):.0f} · {label}"
+    return f'<span class="percentile-badge">{text_value}</span>'
 
-    "below_avg": """
-    Je scoort iets lager dan gemiddeld op deze dimensie. Er lijkt hier nog ruimte om jezelf sterker te ondersteunen in het omgaan met verandering,
-    onzekerheid of nieuwe verwachtingen.
-    """,
 
-    "average": """
-    Je score ligt ongeveer rond het gemiddelde van andere respondenten. Deze factor vormt waarschijnlijk een voldoende basis om je aan te passen wanneer omstandigheden veranderen.
-    """,
+def self_leadership_level(score):
+    """Use the same five descriptive bands for the 1–5 self-assessment score."""
+    return interpret_score(max(0.0, min(100.0, float(score) / 5 * 100)))
 
-    "above_avg": """
-    Je scoort hoger dan gemiddeld op deze dimensie. Deze eigenschap ondersteunt waarschijnlijk je vermogen om flexibel om te gaan met verandering en nieuwe uitdagingen.
-    """,
 
-    "high": """
-    Je behoort tot de hoogste groep respondenten op deze dimensie. Deze eigenschap vormt duidelijk een sterke ondersteuning voor jouw adaptiviteit in het werk.
-    """
-}
+def percentile_summary_text(percentile, level_label):
+    if percentile is None:
+        return level_label
+    return f"P{float(percentile):.0f} · {level_label}"
 
-interpretation_text_context = {
-
-    "low": """
-    Je beoordeelt jouw omgeving lager dan de meeste respondenten op deze dimensie.
-    Dit wijst erop dat jouw context momenteel minder ondersteuning biedt
-    voor jouw adaptivief gedrag.
-    """,
-
-    "below_avg": """
-    Je ervaart jouw context iets minder ondersteunend dan gemiddeld op deze dimensie. Bepaalde voorwaarden die adaptiviteit versterken lijken vandaag minder aanwezig.
-    """,
-
-    "average": """
-    Je beoordeling ligt ongeveer rond het gemiddelde van andere respondenten. Jouw omgeving biedt waarschijnlijk een basisniveau van ondersteuning voor adaptiviteit en verandering.
-    """,
-
-    "above_avg": """
-    Je beoordeelt jouw omgeving positiever dan gemiddeld op deze dimensie. Dit wijst op een context die adaptiviteit, samenwerking en leren relatief goed ondersteunt.
-    """,
-
-    "high": """
-    Je behoort tot de hoogste groep respondenten in hoe positief je jouw omgeving beoordeelt op deze dimensie. Dit wijst op een sterk ondersteunende context voor adaptiviteit, leren en verandering.
-    """
-}
 
 def score_to_percentile(score, dim, percentile_data):
     data = percentile_data.get(dim)
@@ -840,48 +694,24 @@ def score_to_percentile(score, dim, percentile_data):
 def build_report(dim_scores, percentiles_df):
     report = {}
 
-    individual_dims = [
-        "Capaciteit",
-        "Motivatie",
-        "Job Karakteristieken"
-    ]
-
     for dim, score in dim_scores.items():
-
         percentile = score_to_percentile(score, dim, percentiles_df)
-
-        if percentile is None:
-            st.warning(f"Geen percentieldata gevonden voor dimension: {dim}")
-            continue
-
         level = interpret_score(percentile)
-
-        interpretation_kind = interpretation_kind_for_dimension(dim)
-        fallback_text = (
-            interpretation_text_individual[level]
-            if interpretation_kind == "individual"
-            else interpretation_text_context[level]
-        )
-        text = localized_system_interpretation(
-            dim,
-            level,
-            fallback=fallback_text,
-        )
+        text_value = localized_system_interpretation(dim, level)
 
         report[dim] = {
             "score": round(score, 2),
-            "percentile": round(percentile, 1),
+            "percentile": round(percentile, 1) if percentile is not None else None,
             "level": level,
-            "text": text,
+            "text": text_value,
             "meta": {
                 **dimension_meta[dim],
                 "title": localized_dimension_label(dim),
-                "description": localized_dimension_description(dim),
+                "description": localized_dimension_short_description(dim),
             },
         }
 
     return report
-
 
 SURVEY_DIMENSION_GROUPS = {
     "Individuele basis": ["Capaciteit", "Motivatie", "Job Karakteristieken"],
@@ -937,13 +767,14 @@ DIMENSION_ICONS = {
 }
 
 def clean_text(text):
-    return " ".join(str(text).split())
+    return " ".join(str(text or "").split())
 
 
 def dimension_card_html(dimension, data):
     score = float(data["score"])
-    percentile = float(data["percentile"])
+    percentile = data.get("percentile")
     subitems = data.get("subdimension", {})
+
     sub_html = ""
     if subitems:
         rows = "".join(
@@ -952,61 +783,68 @@ def dimension_card_html(dimension, data):
             for name, item in subitems.items()
         )
         sub_html = f'<ul class="sub-list">{rows}</ul>'
-    level_label = localized_band_label(data["level"])
-    interpretation = localized_system_interpretation(
-        dimension,
-        data["level"],
-        fallback=data["text"],
-    )
-    dimension_title = localized_dimension_label(dimension)
-    short_description = localized_dimension_short_description(dimension)
+
+    title = localized_dimension_label(dimension)
+    description = localized_dimension_short_description(dimension)
+    interpretation = localized_system_interpretation(dimension, data["level"])
+    badge = percentile_badge_html(percentile, data["level"])
+
     return (
         '<article class="dimension-card">'
         '<header class="dimension-header">'
+        '<div class="dimension-title-row">'
+        '<div class="dimension-title-wrap">'
         f'<span class="dimension-icon">{DIMENSION_ICONS[dimension]}</span>'
-        f'<div><h3>{dimension_title}</h3><p>{clean_text(short_description)}</p></div>'
+        f'<h3>{title}</h3>'
+        '</div>'
+        f'{badge}'
+        '</div>'
+        f'<p class="dimension-description">{clean_text(description)}</p>'
         '</header>'
         '<div class="score-row">'
         f'<div class="score-track"><div class="score-fill" style="width:{score / 5 * 100:.1f}%"></div></div>'
-        f'<span class="score-value">{score:.2f} / 5</span></div>'
-        f'<span class="percentile-badge"><b>{T["score_interpretation"]}</b> · {level_label} · {T["higher_than"].format(p=f"{percentile:.0f}")}</span>'
+        f'<span class="score-value">{score:.2f} / 5</span>'
+        '</div>'
         f'{sub_html}'
-        f'<div class="interpretation-box"><b>{T["your_interpretation"]}</b><p>{clean_text(interpretation)}</p></div>'
+        f'<div class="interpretation-box"><b>{T["your_interpretation"]}</b>'
+        f'<p>{clean_text(interpretation)}</p></div>'
         '</article>'
     )
 
 
 def self_leadership_card_html(score, sub_scores):
     rows = "".join(
-        f'<li><b>{localized_subdimension_label(name)}</b>: {value:.2f} / 5</li>'
+        f'<li><b>{localized_subdimension_label(name)}</b>: {float(value):.2f} / 5</li>'
         for name, value in sub_scores.items()
     )
     sub_html = f'<ul class="sub-list">{rows}</ul>' if rows else ""
-    title = _report_text("leadership.self_title", T["self_leadership_result"])
-    description = _report_text(
-        "leadership.self_description",
-        T["self_leadership_result_intro"],
-    )
-    benchmark = _report_text(
-        "leadership.self_assessment_badge",
-        T["self_benchmark_unavailable"],
-    )
-    interpretation = _report_text(
-        "leadership.self_interpretation",
-        T["self_recommendation_text"],
-    )
+
+    dimension = "Eigen leiderschap"
+    level = self_leadership_level(score)
+    title = localized_dimension_label(dimension)
+    description = localized_dimension_short_description(dimension)
+    interpretation = localized_system_interpretation(dimension, level)
+    badge = percentile_badge_html(None, level, self_assessment=True)
+
     return (
         '<article class="dimension-card">'
         '<header class="dimension-header">'
+        '<div class="dimension-title-row">'
+        '<div class="dimension-title-wrap">'
         f'<span class="dimension-icon">{DIMENSION_ICONS["Richting & steun leidinggevende"]}</span>'
-        f'<div><h3>{title}</h3><p>{clean_text(description)}</p></div>'
+        f'<h3>{title}</h3>'
+        '</div>'
+        f'{badge}'
+        '</div>'
+        f'<p class="dimension-description">{clean_text(description)}</p>'
         '</header>'
         '<div class="score-row">'
-        f'<div class="score-track"><div class="score-fill" style="width:{score / 5 * 100:.1f}%"></div></div>'
-        f'<span class="score-value">{score:.2f} / 5</span></div>'
-        f'<span class="percentile-badge"><b>{T["score_interpretation"]}</b> · {benchmark}</span>'
+        f'<div class="score-track"><div class="score-fill" style="width:{float(score) / 5 * 100:.1f}%"></div></div>'
+        f'<span class="score-value">{float(score):.2f} / 5</span>'
+        '</div>'
         f'{sub_html}'
-        f'<div class="interpretation-box"><b>{T["self_recommendation"]}</b><p>{clean_text(interpretation)}</p></div>'
+        f'<div class="interpretation-box"><b>{T["your_interpretation"]}</b>'
+        f'<p>{clean_text(interpretation)}</p></div>'
         '</article>'
     )
 
@@ -1029,16 +867,19 @@ h1,h2,h3 { color:var(--primary)!important; }
 .dimension-card { grid-column:span 2; min-height:100%; padding:1.05rem; border:1.5px solid var(--primary); border-radius:16px; background:white; box-shadow:0 8px 22px rgba(15,86,107,.07); display:flex; flex-direction:column; }
 .dimension-grid.two .dimension-card { grid-column:span 3; }
 .dimension-grid.four .dimension-card { grid-column:span 3; }
-.dimension-header { display:grid; grid-template-columns:48px 1fr; gap:.75rem; align-items:start; min-height:132px; }
-.dimension-icon { width:46px; height:46px; border-radius:50%; background:var(--primary); color:white; display:grid; place-items:center; }
+.dimension-header { min-height:145px; }
+.dimension-title-row { display:flex; justify-content:space-between; align-items:flex-start; gap:.7rem; }
+.dimension-title-wrap { display:flex; align-items:center; gap:.75rem; min-width:0; }
+.dimension-icon { flex:0 0 46px; width:46px; height:46px; border-radius:50%; background:var(--primary); color:white; display:grid; place-items:center; }
 .dimension-icon svg { width:68%; height:68%; fill:none; stroke:currentColor; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
-.dimension-card h3 { margin:0 0 .4rem; font-size:1.05rem; line-height:1.2; }
+.dimension-card h3 { margin:0; font-size:1.05rem; line-height:1.2; }
+.dimension-description { margin:.75rem 0 0 3.6rem!important; }
 .dimension-card p { margin:0; font-size:.88rem; line-height:1.42; }
 .score-row { display:flex; gap:.7rem; align-items:center; margin:.9rem 0 .65rem; }
 .score-track { flex:1; height:9px; border-radius:999px; background:#e5f0f3; overflow:hidden; }
 .score-fill { height:100%; background:linear-gradient(90deg,var(--blue),var(--primary)); }
 .score-value { color:var(--primary); font-weight:800; white-space:nowrap; }
-.percentile-badge { display:flex; gap:.28rem .45rem; align-content:flex-start; align-items:flex-start; flex-wrap:wrap; width:100%; max-width:100%; min-height:72px; padding:.48rem .65rem; margin-bottom:.7rem; border-radius:10px; background:#fff7eb; color:var(--primary); font-size:.78rem; line-height:1.35; white-space:normal; overflow-wrap:anywhere; }
+.percentile-badge { flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center; padding:.48rem .72rem; border-radius:999px; background:#fff4df; color:#9a6200; font-size:.72rem; font-weight:800; line-height:1.2; text-align:center; text-transform:uppercase; white-space:nowrap; }
 .interpretation-box { margin-top:auto; padding:.8rem; border-radius:10px; background:var(--light-blue); }
 .sub-list { margin:.65rem 0 .8rem; padding-left:1rem; color:var(--text); font-size:.82rem; }
 .sub-list li { margin:.28rem 0; }
@@ -1046,7 +887,7 @@ div[data-testid="stRadio"] label p { font-size:.82rem; }
 @media (min-width:900px) { div[data-testid="stRadio"] div[role="radiogroup"] { flex-wrap:nowrap; gap:.45rem; } }
 .stButton>button { border:0; border-radius:999px; background:var(--primary); color:white; font-weight:700; padding-left:1.25rem; padding-right:1.25rem; }
 .stButton>button:hover { background:#0a4455; color:white; }
-@media(max-width:800px){ .block-container{padding:4.5rem 1rem 3rem}.dimension-grid,.dimension-grid.two,.dimension-grid.four{grid-template-columns:1fr}.dimension-card,.dimension-grid.two .dimension-card,.dimension-grid.four .dimension-card{grid-column:1}.dimension-header{min-height:0}.percentile-badge{min-height:0}.app-header{margin-left:-1rem;border-radius:0 28px 28px 0}.app-header h1{font-size:1.6rem} }
+@media(max-width:800px){ .block-container{padding:4.5rem 1rem 3rem}.dimension-grid,.dimension-grid.two,.dimension-grid.four{grid-template-columns:1fr}.dimension-card,.dimension-grid.two .dimension-card,.dimension-grid.four .dimension-card{grid-column:1}.dimension-header{min-height:0}.dimension-title-row{flex-wrap:wrap}.percentile-badge{margin-left:auto}.dimension-description{margin-left:0!important}.app-header{margin-left:-1rem;border-radius:0 28px 28px 0}.app-header h1{font-size:1.6rem} }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1068,13 +909,6 @@ with language_picker:
 if st.query_params.get("lang") != LANGUAGE:
     st.query_params["lang"] = LANGUAGE
 T = UI_TEXTS[LANGUAGE]
-REPORT_TRANSLATOR = None
-if Translator is not None:
-    try:
-        REPORT_TRANSLATOR = Translator(LANGUAGE)
-    except Exception:
-        # Standalone gebruik blijft mogelijk met translations.py als fallback.
-        REPORT_TRANSLATOR = None
 
 
 def request_scroll_to_top():
@@ -1173,7 +1007,7 @@ elif st.session_state.step in (2, 3, 4):
         with st.container():
             col_q, col_a = st.columns([5, 7], gap="large")
             with col_q:
-                st.markdown(f"**{question}**")
+                st.write(question)
             with col_a:
                 selected = st.radio(
                     label="",
@@ -1279,26 +1113,27 @@ elif st.session_state.step in (2, 3, 4):
 # ---------------------------
 elif st.session_state.step == 5:
     report = st.session_state.report
-    strongest = max(report.items(), key=lambda item: item[1]["percentile"])
-    weakest = min(report.items(), key=lambda item: item[1]["percentile"])
-    strongest_percentile = f'{strongest[1]["percentile"]:.0f}'
-    weakest_percentile = f'{weakest[1]["percentile"]:.0f}'
+    benchmarked = [(name, data) for name, data in report.items() if data.get("percentile") is not None]
+    if benchmarked:
+        strongest = max(benchmarked, key=lambda item: item[1]["percentile"])
+        weakest = min(benchmarked, key=lambda item: item[1]["percentile"])
+    else:
+        strongest = next(iter(report.items()))
+        weakest = strongest
+    strongest_percentile = strongest[1].get("percentile")
+    weakest_percentile = weakest[1].get("percentile")
     strongest_level = localized_band_label(strongest[1]["level"])
     weakest_level = localized_band_label(weakest[1]["level"])
     strongest_interpretation = localized_system_interpretation(
-        strongest[0], strongest[1]["level"], fallback=strongest[1]["text"]
+        strongest[0], strongest[1]["level"]
     )
     weakest_interpretation = localized_system_interpretation(
-        weakest[0], weakest[1]["level"], fallback=weakest[1]["text"]
+        weakest[0], weakest[1]["level"]
     )
 
     st.markdown(f'<span class="section-pill">{T["profile_pill"]}</span>', unsafe_allow_html=True)
     st.title(T["thanks"])
-    result_intro = _report_text(
-        "individual_report.ui.part2.intro_html",
-        T["result_intro"],
-    )
-    st.markdown(result_intro, unsafe_allow_html=True)
+    st.markdown(T["result_intro"], unsafe_allow_html=True)
 
     assets_dir = Path(__file__).resolve().parent / "assets"
     model_paths = {
@@ -1325,13 +1160,13 @@ elif st.session_state.step == 5:
             st.markdown(
                 f"**{T['strongest']}**  \n"
                 f"{localized_dimension_label(strongest[0])}: {strongest[1]['score']:.2f} / 5  \n"
-                f"{T['higher_than'].format(p=strongest_percentile)} · {strongest_level}  \n\n"
+                f"{percentile_summary_text(strongest_percentile, strongest_level)}  \n\n"
                 f"{clean_text(strongest_interpretation)}"
             )
             st.markdown(
                 f"**{T['development']}**  \n"
                 f"{localized_dimension_label(weakest[0])}: {weakest[1]['score']:.2f} / 5  \n"
-                f"{T['higher_than'].format(p=weakest_percentile)} · {weakest_level}  \n\n"
+                f"{percentile_summary_text(weakest_percentile, weakest_level)}  \n\n"
                 f"{clean_text(weakest_interpretation)}"
             )
             st.info(T["summary_note"])

@@ -21,7 +21,7 @@ from translations import (
     TRANSLATIONS_CONTENT_VERSION,
 )
 
-APP_CONTENT_VERSION = "2026-08-06-verified-layout-v7"
+APP_CONTENT_VERSION = "2026-08-06-level-names-v8"
 
 # ---------------------------
 # APP CONFIG
@@ -96,11 +96,11 @@ if "answers" not in st.session_state:
 question_map = {
 
 # ---------------- CAPACITEIT ----------------
-"Ik ben zelfzeker dat ik bij onverwachte veranderingen mijn manier van werken kan aanpassen.": {"dimension":"Capaciteit","subdimension":"Perceived Behavioral Control","code":"COM-C1","direction":"pos"},
+"Ik ben zelfzeker dat ik bij onverwachte veranderingen mijn manier van werken kan aanpassen.": {"dimension":"Capaciteit","subdimension":"Ervaren gedragscontrole","code":"COM-C1","direction":"pos"},
 "Ik heb de vaardigheden om verschillende oplossingen te beoordelen en de beste te kiezen.": {"dimension":"Capaciteit","subdimension":"Vaardigheid","code":"COM-C2","direction":"pos"},
 "Mijn eerdere ervaringen helpen mij om te blijven groeien en mij aan te passen.": {"dimension":"Capaciteit","subdimension":"Vaardigheid","code":"COM-C3","direction":"pos"},
 "Ik vind het belangrijk om mijn werkwijze bij te sturen wanneer omstandigheden veranderen.": {"dimension":"Capaciteit","subdimension":"Ervaren belang","code":"COM-C4","direction":"pos"},
-"Ik heb het gevoel dat mijn aanpassingsvermogen op het werk vooral afhangt van mezelf, niet van mijn omgeving.": {"dimension":"Capaciteit","subdimension":"Perceived Behavioral Control","code":"COM-C5","direction":"pos"},
+"Ik heb het gevoel dat mijn aanpassingsvermogen op het werk vooral afhangt van mezelf, niet van mijn omgeving.": {"dimension":"Capaciteit","subdimension":"Ervaren gedragscontrole","code":"COM-C5","direction":"pos"},
 "Ik kan snel verbanden leggen en overzicht houden in nieuwe situaties.": {"dimension":"Capaciteit","subdimension":"Vaardigheid","code":"COM-C_new","direction":"pos"},
 
 # ---------------- MOTIVATIE ----------------
@@ -284,7 +284,7 @@ subdimension_meta = {
     # -------------------------
     # CAPACITEIT
     # -------------------------
-    "Perceived Behavioral Control": {
+    "Ervaren gedragscontrole": {
         "description": """Dit gaat over het gevoel dat je zelf invloed hebt op je aanpassingsvermogen. Voel je dat jij je gedrag en aanpak kan sturen, of heb je het gevoel dat vooral externe omstandigheden bepalen wat mogelijk is? Dit is belangrijk omdat mensen sneller initiatief nemen wanneer ze geloven dat ze zelf impact hebben."""
     },
     "Vaardigheid": {
@@ -523,7 +523,7 @@ percentile_data = {
     ],
 
     # subdimensies
-    "Perceived Behavioral Control": [
+    "Ervaren gedragscontrole": [
         (2.0, 1.785714286),
         (3.0, 24.10714286),
         (4.0, 75.89285714),
